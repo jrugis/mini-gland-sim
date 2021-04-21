@@ -1,10 +1,10 @@
 ############################################################################################
 ############################################################################################
 
-Parotid Simulation on Mahuika
+Mini-Gland Simulation on Mahuika
 =============================
 cd /nesi/project/nesi00119/your_name
-git clone https://github.com/jrugis/psim_coupled.git
+git clone https://github.com/jrugis/mini-gland-sim.git
 
 git pull
 OR
@@ -23,14 +23,14 @@ ml Python/3.8.2-gimkl-2020a
 
 Build
 -----
-cd psim_coupled/build
+cd mini-gland-sim/build
 make clean
 make
 
 
 Run
 ---
-cd psim_coupled/run
+cd mini-gland-sim/run
 
 cp run_default.sl my_run_xxxx.sl
 cp acinus_parms.dat my_acinus_parms_xxxx.dat
@@ -46,7 +46,7 @@ squeue -u UPI
 
 Results
 -------
-cd /nesi/nobackup/nesi00119/your_name/psim_coupled/run/results/XXXX/XXXX
+cd /nesi/nobackup/nesi00119/your_name/mini-gland-sim/run/results/XXXX/XXXX
 summary_plot.pdf
 
 ############################################################################################
@@ -54,25 +54,42 @@ summary_plot.pdf
 
 MPI Processes / Classes
 =======================
-1x_Acinus
-   member class: 1x_Lumen    
+1x MiniGlandDuct (main)
+	member class: Nx DuctSegment	
+		member class: Nx (CellAcinus OR CellIntercalated OR CellStriated)
 
-7x_Cell_calcium
-   member class: 1x CellMesh 
-   member class: 1x Cell_flow
+CellCalcium (virtual base class)
+	member class: 1x CellMesh
+	member class: 1x CellFlow (virtual base class)
 
-   Class data exchange: 
-     Cell_calcium -> Cell_flow, calcium concentration
-     Cell_flow -> Cell_calcium, volume factor
+CellCalcium -> CellAcinus
+CellCalcium -> CellIntercalated
+CellCalcium -> CellStriated
+CellFlow - > CellFlowAcinus
+CellFlow - > CellFlowIntercalated
+CellFlow - > CellFlowStriated
 
-MPI Messaging
-=============
-Acinus <-> Cells
-   acinus triggers cell sim stepping
-   cells acknowledge when step completed (with flow data for lumen)
 
-Cells <-> Cells
-   cell-to-cell tight juction coupling (within each cell sim step)
+MPI ranks and comms
+===================
+1x MiniGlandDuct (including Nx DuctSegment)
+Nx CellAcinus
+
+MiniGlandDuct <-> CellAcinus
+   time stepping
+CellAcinus <-> CellAcinus
+   cell-to-cell tight junction coupling (within each cell sim step)
+
+OMP 
+===
+Nx CellIntercalated
+Nx CellStriated
+
+
+
+
+
+
    
 ############################################################################################
 ############################################################################################

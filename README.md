@@ -1,2 +1,2 @@
-# psim_coupled
+# mini-gland-sim
 parotid simulation

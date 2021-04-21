@@ -1,7 +1,7 @@
 /*
  * utils.cpp
  *
- *	Created on: 27/04/2018
+ *	Created on: 21/04/2021
  *	Author: jrugis
  */
 
@@ -39,14 +39,12 @@ void utils::fatal_error(const std::string msg, std::ofstream& out)
   out << m << std::endl;
   out.close();
   std::cerr << m << std::endl;
-  MPI_CHECK(MPI_Abort(MPI_COMM_WORLD, 1)); // make sure the whole program fails
   exit(1);
 }
 
 // NOTE: used by each of the acinus, lumen and cell objects
-void utils::get_parameters(const std::string file_id, int cell_num, std::unordered_map<std::string, double>& p, std::ofstream& out)
+void utils::get_parameters(const std::string file_name, std::unordered_map<std::string, double>& p, std::ofstream& out)
 {
-  std::string file_name = file_id + ".dat";
   std::ifstream model_file(file_name); // open the model parameters file
   std::string line;                    // file line buffer
   std::vector<std::string> tokens;     // tokenized line
@@ -59,7 +57,7 @@ void utils::get_parameters(const std::string file_id, int cell_num, std::unorder
     if (ci > 0) line = line.substr(0, ci); //
     line = boost::trim_right_copy(line);   // remove trailing whitespace
     boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-    p[tokens[0]] = atof(tokens[((tokens.size() == 2) ? 1 : cell_num)].c_str());
+    p[tokens[0]] = atof(tokens[1].c_str());
     out << " " << tokens[0] << std::flush;
   }
   out << std::endl;
@@ -78,7 +76,7 @@ double utils::get_distance(const Vector3d& p, const Vector3d& v, const Vector3d&
   const Vector3d projection = v + (t * (w - v));                    // Projection falls on the segment
   return ((projection - p).norm());                                 // return distance(p, projection)
 }
-
+/*
 void utils::read_mesh(const std::string file_name, sMeshVals& mesh_vals, std::ofstream& out)
 {
   std::ifstream cell_file(file_name + ".bmsh", std::ios::in | std::ios::binary); // open the mesh file
@@ -101,7 +99,7 @@ void utils::read_mesh(const std::string file_name, sMeshVals& mesh_vals, std::of
 
   cell_file.close();
 }
-
+*/
 void utils::save_matrix(const std::string file_name, int bytes, char* data)
 {
   std::ofstream data_file;
