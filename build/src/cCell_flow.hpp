@@ -27,15 +27,16 @@ class cCell_flow {
   public:
   cCell_flow(cCell_calcium* parent);
   ~cCell_flow();
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW   // required when using fixed-size vectorizable Eigen object(s)
-  void step();
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW // required when using fixed-size vectorizable Eigen object(s)
+    void
+    step();
 
   private:
   cCell_calcium* parent;
   std::unordered_map<std::string, double> p;
-  //int cell_number;
-  Array1IC solvec, prev_solvec;   // solution vectors for ions
-  constant_values s;              // secretion constants vector
+  // int cell_number;
+  Array1IC solvec, prev_solvec; // solution vectors for ions
+  constant_values s;            // secretion constants vector
   void init_solvec();
   void init_const();
 };

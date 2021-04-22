@@ -1,9 +1,11 @@
 #----------------------------------
-# psim5 excludes
+# mini-gland-sim excludes
 
-psim_coupled
+mini-gland-sim
 */results/*
 my*
+
+*.ply
 
 #----------------------------------
 # Mac excludes

@@ -20,7 +20,7 @@ namespace utils {
   void fatal_error(const std::string msg, std::ofstream& out);
   void get_parameters(const std::string file_name, std::unordered_map<std::string, double>& p, std::ofstream& out);
   double get_distance(const Vector3d& p, const Vector3d& v, const Vector3d& w);
-  //void read_mesh(const std::string file_name, sMeshVals& mesh_vals, std::ofstream& out);
+  // void read_mesh(const std::string file_name, sMeshVals& mesh_vals, std::ofstream& out);
   void save_matrix(const std::string file_name, int bytes, char* data);
 } // namespace utils
 

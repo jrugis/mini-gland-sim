@@ -27,9 +27,9 @@ class cCell_flow;
 #define REF_MASS_SIZE 4 // reference mass dimension
 
 enum model_element_values { VOL_e, RYR_e, PLC_e, MODELECOUNT }; // element volume and spatial factors
-//enum model_element_values { VOL_e, PLC_e, MODELECOUNT };        // element volume and spatial factors
-enum model_surface_values { AREA_s, MODELSCOUNT };              // surface triangle area
-enum model_node_values { BOOL_apical, MODELNCOUNT };            // apical (boolean)
+// enum model_element_values { VOL_e, PLC_e, MODELECOUNT };        // element volume and spatial factors
+enum model_surface_values { AREA_s, MODELSCOUNT };   // surface triangle area
+enum model_node_values { BOOL_apical, MODELNCOUNT }; // apical (boolean)
 
 // some convenience typedefs
 typedef Eigen::Array<double, Eigen::Dynamic, 1> ArrayX1C;
@@ -49,8 +49,9 @@ class cCell_calcium {
   public:
   cCell_calcium(std::string host_name, int my_rank, int acinus_rank);
   ~cCell_calcium();
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW    // required when using fixed-size vectorizable Eigen object(s)
-  void run();
+  EIGEN_MAKE_ALIGNED_OPERATOR_NEW // required when using fixed-size vectorizable Eigen object(s)
+    void
+    run();
 
   private:
   std::string id;
@@ -76,11 +77,11 @@ class cCell_calcium {
   void save_results(std::ofstream& data_file, int var);
 
   MatrixN1d solve_nd(double delta_time);
-  //MatrixN1d make_load(double delta_time, bool plc);
+  // MatrixN1d make_load(double delta_time, bool plc);
   MatrixN1d make_load(bool plc);
   ArrayRefMass make_ref_mass();
   Array1VC get_body_reactions(double c, double ip, double ce, double g, double ryr_f, double plc_f);
-  //Array1VC get_body_reactions(double c, double ip, double ce, double plc_f);
+  // Array1VC get_body_reactions(double c, double ip, double ce, double plc_f);
   Array1VC get_apical_reactions(double c, double ip, double ce, double h);
   double get_g_reaction(double c, double g); // RYR dynamics
   double get_h_reaction(double c, double h); // IPR dynamics (apical)

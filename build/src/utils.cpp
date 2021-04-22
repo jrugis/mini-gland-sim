@@ -76,6 +76,7 @@ double utils::get_distance(const Vector3d& p, const Vector3d& v, const Vector3d&
   const Vector3d projection = v + (t * (w - v));                    // Projection falls on the segment
   return ((projection - p).norm());                                 // return distance(p, projection)
 }
+
 /*
 void utils::read_mesh(const std::string file_name, sMeshVals& mesh_vals, std::ofstream& out)
 {

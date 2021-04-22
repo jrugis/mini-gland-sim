@@ -28,7 +28,7 @@ typedef Eigen::Matrix<int, Eigen::Dynamic, 1> MatrixN1i;
 typedef Eigen::Matrix<int, Eigen::Dynamic, 2, Eigen::RowMajorBit> MatrixN2i;
 typedef Eigen::Matrix<int, Eigen::Dynamic, 3, Eigen::RowMajorBit> MatrixN3i;
 typedef Eigen::Matrix<int, Eigen::Dynamic, 4, Eigen::RowMajorBit> MatrixN4i;
-//typedef Eigen::Matrix<int, Eigen::Dynamic, CCONNCOUNT, Eigen::RowMajorBit> MatrixNCi;
+// typedef Eigen::Matrix<int, Eigen::Dynamic, CCONNCOUNT, Eigen::RowMajorBit> MatrixNCi;
 typedef Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> MatrixNNi;
 
 typedef Eigen::Vector3d Vector3d;
@@ -38,7 +38,7 @@ typedef Eigen::Vector4i Vector4i;
 //************************************************************************
 //************************************************************************
 // cell mesh values
-//struct sMeshVals {
+// struct sMeshVals {
 //  int vertices_count;
 //  int surface_triangles_count;
 //  int tetrahedrons_count;
@@ -52,7 +52,7 @@ typedef Eigen::Vector4i Vector4i;
 //#define R 8.314462100000000
 //#define T 310
 //#define F 9.645833650000000e4
-//const double RTF = 1000.0 * R * T / F;
+// const double RTF = 1000.0 * R * T / F;
 
 //************************************************************************
 //************************************************************************

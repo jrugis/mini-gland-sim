@@ -298,12 +298,12 @@ double cCell_calcium::get_h_reaction(double c, double h)
 }
 
 Array1VC cCell_calcium::get_body_reactions(double c, double ip, double ce, double g, double ryr_f, double plc_f)
-//Array1VC cCell_calcium::get_body_reactions(double c, double ip, double ce, double plc_f)
+// Array1VC cCell_calcium::get_body_reactions(double c, double ip, double ce, double plc_f)
 {
   double J_SERCA = p.at("V_p") * (pow(c, 2) - p.at("K_bar") * pow(ce, 2)) / (pow(p.at("k_p"), 2) + pow(c, 2));
   double J_RYR = ryr_f * p.at("V_RyR") * (pow(c, p.at("n_RyR")) / (pow(c, p.at("n_RyR")) + pow(p.at("K_RyR"), p.at("n_RyR")))) *
-	             (pow(ce, p.at("m_RyR")) / (pow(ce, p.at("m_RyR")) + pow(p.at("K_RyR2"), p.at("m_RyR")))) * g;
-  //double J_RYR = 0.0;
+                 (pow(ce, p.at("m_RyR")) / (pow(ce, p.at("m_RyR")) + pow(p.at("K_RyR2"), p.at("m_RyR")))) * g;
+  // double J_RYR = 0.0;
   double vplc = plc_f * p.at("V_PLC") * pow(c, 2) / (pow(p.at("K_PLC"), 2) + pow(c, 2));
   double vdeg = (p.at("V_5K") + (p.at("V_3K") * pow(c, 2)) / (pow(p.at("K3K"), 2) + pow(c, 2))) * ip;
 
@@ -316,7 +316,7 @@ Array1VC cCell_calcium::get_body_reactions(double c, double ip, double ce, doubl
   return reactions;
 }
 
-//MatrixN1d cCell_calcium::make_load(double dt, bool plc)
+// MatrixN1d cCell_calcium::make_load(double dt, bool plc)
 MatrixN1d cCell_calcium::make_load(bool plc)
 {
   int np = mesh->mesh_vals.vertices_count;
@@ -331,7 +331,7 @@ MatrixN1d cCell_calcium::make_load(bool plc)
   ce = prev_solvec.block(2 * np, 0, np, 1);
   g = prev_nd_solvec.block(0, 0, np, 1);
   h = prev_nd_solvec.block(np, 0, np, 1); // note: only apical (surface) nodes used
-  //h = prev_nd_solvec.block(0, 0, np, 1); // note: only apical (surface) nodes used
+  // h = prev_nd_solvec.block(0, 0, np, 1); // note: only apical (surface) nodes used
 
   load_c = load_c.Zero(np, 1);
   load_ip = load_ip.Zero(np, 1);
@@ -349,8 +349,8 @@ MatrixN1d cCell_calcium::make_load(bool plc)
     double gav = 0.25 * (g(vi(0)) + g(vi(1)) + g(vi(2)) + g(vi(3)));
 
     Array1VC reactions =
-	  get_body_reactions(cav, ipav, ceav, gav, double(element_data(n, RYR_e)), double(plc ? element_data(n, PLC_e) : 0.0));
-    //Array1VC reactions =
+      get_body_reactions(cav, ipav, ceav, gav, double(element_data(n, RYR_e)), double(plc ? element_data(n, PLC_e) : 0.0));
+    // Array1VC reactions =
     //  get_body_reactions(cav, ipav, ceav, double(plc ? element_data(n, PLC_e) : 0.0));
 
     for (int i = 0; i < 4; i++) {                                    // for each tetrahedron vertex
@@ -397,14 +397,14 @@ MatrixN1d cCell_calcium::solve_nd(double dt)
   c = prev_solvec.block(0, 0, np, 1);
   g = prev_nd_solvec.block(0, 0, np, 1);
   h = prev_nd_solvec.block(np, 0, np, 1); // note: only apical (surface) nodes used
-  //h = prev_nd_solvec.block(0, 0, np, 1); // note: only apical (surface) nodes used
+  // h = prev_nd_solvec.block(0, 0, np, 1); // note: only apical (surface) nodes used
   svec.resize(NONDIFVARS * np, Eigen::NoChange);
 
   for (int n = 0; n < np; n++) {                               // for each node...
-	svec(n) = g(n) + (dt * get_g_reaction(c(n), g(n)));        // g
+    svec(n) = g(n) + (dt * get_g_reaction(c(n), g(n)));        // g
     if (node_data(n, BOOL_apical) == 1.0) {                    // only the apical nodes
-	  svec(np + n) = h(n) + (dt * get_h_reaction(c(n), h(n))); // h
-	  //svec(n) = h(n) + (dt * get_h_reaction(c(n), h(n))); // h
+      svec(np + n) = h(n) + (dt * get_h_reaction(c(n), h(n))); // h
+      // svec(n) = h(n) + (dt * get_h_reaction(c(n), h(n))); // h
     }
   }
   return svec;
@@ -452,7 +452,7 @@ void cCell_calcium::run()
     step++;
     prev_solvec = solvec;       // c, ip, ce
     prev_nd_solvec = nd_solvec; // g, h
-    //prev_nd_solvec = nd_solvec; // h
+    // prev_nd_solvec = nd_solvec; // h
 
     // get current time and time step value from acinus
     MPI_CHECK(MPI_Recv(&msg, ACCOUNT, MPI_FLOAT, acinus_rank, ACINUS_CELL_TAG, MPI_COMM_WORLD, &stat));
@@ -470,8 +470,8 @@ void cCell_calcium::run()
     plc = ((current_time >= p.at("PLCsrt")) and (current_time <= p.at("PLCfin"))); // PLC on or off?
 
     // calculate the fluid flow
-	if(p.at("fluidFlow")) flow->step(); 
-	
+    if (p.at("fluidFlow")) flow->step();
+
     if (delta_time != prev_delta_time) { // recalculate A matrix if time step changed
       sparseA = sparseMass + (delta_time * sparseStiff);
       solver.compute(sparseA);
@@ -485,7 +485,7 @@ void cCell_calcium::run()
     exchange();
 
     // calculate solution for diffusing variables
-    //rhs = (sparseMass * prev_solvec) + (delta_time * make_load(delta_time, plc));
+    // rhs = (sparseMass * prev_solvec) + (delta_time * make_load(delta_time, plc));
     rhs = (sparseMass * prev_solvec) + (delta_time * make_load(plc));
     clock_gettime(CLOCK_REALTIME, &start);
     solvec = solver.solve(rhs); // Eigen solver

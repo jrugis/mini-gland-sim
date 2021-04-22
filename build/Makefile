@@ -39,7 +39,7 @@ CPP_LIBS = -lsundials_cvodes
 ###########################################################################################
 
 EXE = ../run/mini-gland-sim
-OBJS = main.o utils.o cMiniGlandDuct.o cDuctSegment.o
+OBJS = main.o utils.o cMiniGlandDuct.o cDuctSegment.o cCell.o
 SRC = ./src
 
 all: $(EXE)
@@ -54,6 +54,9 @@ cMiniGlandDuct.o: $(SRC)/cMiniGlandDuct.cpp $(SRC)/cMiniGlandDuct.hpp $(SRC)/uti
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 cDuctSegment.o: $(SRC)/cDuctSegment.cpp $(SRC)/cDuctSegment.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
+	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
+
+cCell.o: $(SRC)/cCell.cpp $(SRC)/cCell.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 #cLumen.o: $(SRC)/cLumen.cpp $(SRC)/cLumen.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp 

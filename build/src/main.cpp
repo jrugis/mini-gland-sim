@@ -29,7 +29,7 @@ int main(int argc, char** args)
 
   //*********************************************************************************
 
-  std::cout << "<main> running on host: " << host_name  << std::endl;
+  std::cout << "<main> running on host: " << host_name << std::endl;
   cMiniGlandDuct* duct = new cMiniGlandDuct();
   duct->run();
   delete duct;

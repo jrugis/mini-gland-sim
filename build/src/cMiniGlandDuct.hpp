@@ -25,10 +25,12 @@ class cMiniGlandDuct {
 
   private:
   std::string id;
-  std::ofstream out;   // the runtime diagnostic file for this object
+  std::ofstream out;                         // the runtime diagnostic file for this object
   std::unordered_map<std::string, double> p; // the model parameters
 
   std::vector<cDuctSegment*> segments;
+  
+  int get_element_count();
 };
 
 #endif /* CMINIGLANDDUCT_H_ */
