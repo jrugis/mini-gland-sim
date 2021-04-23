@@ -25,22 +25,41 @@ class cDuctSegment {
 	
   public:
   cDuctSegment(cMiniGlandDuct* parent, int seg_number);
-  ~cDuctSegment();
-  void run();
+  virtual ~cDuctSegment();
 
   private:
   cMiniGlandDuct* parent;
   std::string id;
   std::ofstream out;                         // runtime diagnostic file for this object
   std::unordered_map<std::string, double> p; // the model parameters
-
   int seg_number;                          // this segment number
+  int seg_type;                            // type of this duct segment 
+
   Vector3d vertex_in, vertex_out;          // input and output center points for this duct segment
   double inner_diameter, outer_diameter;   // inner and outer diameter of this duct segment
-  int seg_type;                            // type of this duct segment 
   std::vector<cCell*> cells;               // the cells associated with this duct segment
   
-  void get_segment_data();
+  std::tuple<int,int> get_segment_data();
+  virtual void run();
+  virtual void create_cells(std::tuple<int,int> cell_info);
+};
+
+class cDuctSegmentAcinus : public cDuctSegment {
+  private:
+  virtual void run();
+  virtual void create_cells(std::tuple<int,int> cell_info);
+};
+
+class cDuctSegmentIntercalated : public cDuctSegment {
+  private:
+  virtual void run();
+  virtual void create_cells(std::tuple<int,int> cell_info);
+};
+
+class cDuctSegmentStriated : public cDuctSegment {
+  private:
+  virtual void run();
+  virtual void create_cells(std::tuple<int,int> cell_info);
 };
 
 #endif /* CDUCTSEGMENT_H_ */

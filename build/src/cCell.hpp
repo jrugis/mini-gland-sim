@@ -27,10 +27,10 @@ class cCell {
   std::unordered_map<std::string, double> p; // the model parameters
 
   int cell_number;           // this cell number
-  int nverts, nfaces, ntets  // number of vertices, faces, tets for this cell
+  int nverts, nfaces, ntets; // number of vertices, faces, tets for this cell
   MatrixN3d verts;           
   MatrixN3i faces;
-  MatrixN4d tets;
+  MatrixN4i tets;
 
   void get_cell_data();
 };

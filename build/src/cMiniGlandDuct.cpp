@@ -9,7 +9,6 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/tokenizer.hpp>
-//#include <iomanip>
 #include <iostream>
 #include <string>
 
@@ -25,12 +24,15 @@ cMiniGlandDuct::cMiniGlandDuct()
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
   utils::get_parameters(PARAMETER_FILE_NAME, p, out); // NOTE: all the parameters are in this file
 
+  // TO DO - get segment data and create segments
+  // push_back the different seg types
+  
   // create duct segments
-  int nsegs = get_element_count();
-  for(int i =0; i<nsegs; i++){
-	  segments.push_back(new cDuctSegment(this, i));
-  }
-  out << "<MiniGlandDuct> Segment count: " << segments.size() << std::endl;
+  //int nsegs = get_element_count();
+  //for(int i =0; i<nsegs; i++){
+  //	  segments.push_back(new cDuctSegment(this, i));
+  //}
+  //out << "<MiniGlandDuct> Segment count: " << segments.size() << std::endl;
 }
 
 cMiniGlandDuct::~cMiniGlandDuct() { 
@@ -38,7 +40,7 @@ cMiniGlandDuct::~cMiniGlandDuct() {
   out.close(); // close the diagnostic file
 }
 
-int cMiniGlandDuct::get_element_count()
+std::tuple<int, std::vector<int>> cMiniGlandDuct::get_segment_data()
 {
   std::string line;                    // file line buffer
   std::vector<std::string> tokens;     // tokenized line
@@ -51,7 +53,6 @@ int cMiniGlandDuct::get_element_count()
   mesh_file.close();
   return(atoi(tokens[2].c_str()));
 }
-
 
 void cMiniGlandDuct::run()
 {

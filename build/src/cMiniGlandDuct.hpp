@@ -10,6 +10,7 @@
 
 #include <fstream>
 #include <string>
+#include <tuple>
 #include <unordered_map>
 #include <vector>
 
@@ -30,7 +31,7 @@ class cMiniGlandDuct {
 
   std::vector<cDuctSegment*> segments;
   
-  int get_element_count();
+  std::tuple<int, std::vector<int>> get_segment_data();
 };
 
 #endif /* CMINIGLANDDUCT_H_ */

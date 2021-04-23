@@ -10,9 +10,9 @@
 #include <boost/algorithm/string/split.hpp>
 #include <boost/tokenizer.hpp>
 
-//#include <iomanip>
 #include <iostream>
 #include <string>
+#include <tuple>
 
 #include "global_defs.hpp"
 #include "utils.hpp"
@@ -23,12 +23,11 @@
 
 cDuctSegment::cDuctSegment(cMiniGlandDuct* _parent, int _seg_number) : parent(_parent), seg_number(_seg_number)
 {
-
   id = parent->id + "s" + std::to_string(seg_number+1); // NOTE: one based segment id
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
 
   utils::get_parameters(PARAMETER_FILE_NAME, p, out); // NOTE: all the parameters are in this file
-  get_segment_data();
+  create_cells(get_segment_data());
   out << "<DuctSegment> Cell count: " << cells.size() << std::endl;
 }
 
@@ -37,7 +36,7 @@ cDuctSegment::~cDuctSegment() {
   out.close(); 
 }
 
-void cDuctSegment::get_segment_data(){
+std::tuple<int,int> cDuctSegment::get_segment_data(){
   std::string line;                    // file line buffer
   std::vector<std::string> tokens;     // tokenized line
   std::vector<Vector3d> verts;
@@ -74,42 +73,17 @@ void cDuctSegment::get_segment_data(){
   outer_diameter = atof(tokens[3].c_str());
   seg_type = atoi(tokens[4].c_str());
 
-ToDO check this...  
-  // create the cells for this segment
-  int ncells = atoi(tokens[5].c_str());
-  for(int i =0; i<ncells; i++){
-	 cells.push_back(new cCell(this, atoi(tokens[6+i].c_str())));
-  }
-
   mesh_file.close();
+
+  // return tuple of cell count and start index
+  return(std::make_tuple( atoi(tokens[5].c_str()), atoi(tokens[6].c_str())));
 }
 
+// TO DO 
+// create cells of same type as segment given cell count and start index
+void cDuctSegment::create_cells(std::tuple<int,int> cell_info){}
+
+// TO DO change "run" to "step", in cells too...
 void cDuctSegment::run()
 {
-  /*  double t = 0.0;
-    double solver_dt = p.at("delT");
-    double error;
-    struct timespec start, end;
-    double elapsed;
-
-    // simulation time stepping and synchronization
-    clock_gettime(CLOCK_REALTIME, &start);
-    while ((p.at("totalT") - t) > 0.000001) { // HARD CODED: assumes solver_dt always > 1us
-      error = snd_recv(t, solver_dt);         // invoke the calcium solver
-      if (error != 0.0) {
-        // ...   change time step???
-      }
-      // invoke lumen step ???
-
-      clock_gettime(CLOCK_REALTIME, &end);
-      elapsed = (end.tv_sec - start.tv_sec) + ((end.tv_nsec - start.tv_nsec) / 1000000000.0);
-      out << std::fixed << std::setprecision(3);
-      out << "<Acinus> step duration: " << elapsed << "s" << std::endl;
-      start = end;
-      t += solver_dt;
-    }
-
-    // instruct cells to finish
-    snd_recv(t, 0.0);
-    */
 }
