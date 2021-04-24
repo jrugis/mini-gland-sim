@@ -39,7 +39,7 @@ CPP_LIBS = -lsundials_cvodes
 ###########################################################################################
 
 EXE = ../run/mini-gland-sim
-OBJS = main.o utils.o cMiniGlandDuct.o cDuctSegment.o  cDuctSegmentAcinus.o cDuctSegmentIntercalated.o cDuctSegmentStriated.o cCell.o
+OBJS = main.o utils.o cMiniGlandDuct.o cDuctSegment.o  cDuctSegmentAcinus.o cDuctSegmentIntercalated.o cDuctSegmentStriated.o cCell.o cCellAcinus.o cCellIntercalated.o cCellStriated.o
 SRC = ./src
 
 all: $(EXE)
@@ -67,6 +67,16 @@ cDuctSegmentStriated.o: $(SRC)/cDuctSegmentStriated.cpp $(SRC)/cDuctSegment.hpp
 
 cCell.o: $(SRC)/cCell.cpp $(SRC)/cCell.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
+
+cCellAcinus.o: $(SRC)/cCellAcinus.cpp $(SRC)/cCell.hpp 
+	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
+
+cCellIntercalated.o: $(SRC)/cCellIntercalated.cpp $(SRC)/cCell.hpp 
+	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
+
+cCellStriated.o: $(SRC)/cCellStriated.cpp $(SRC)/cCell.hpp 
+	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
+
 
 #cLumen.o: $(SRC)/cLumen.cpp $(SRC)/cLumen.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp 
 #	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<

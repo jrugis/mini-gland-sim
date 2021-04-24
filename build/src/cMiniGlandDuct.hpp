@@ -29,9 +29,8 @@ class cMiniGlandDuct {
   std::ofstream out;                         // the runtime diagnostic file for this object
   std::unordered_map<std::string, double> p; // the model parameters
 
-  std::vector<cDuctSegment*> segments;
-  
-  std::tuple<int, std::vector<int>> get_segment_data();
+  std::vector<cDuctSegment*> segments;           // the duct segment objects
+  std::vector<std::tuple<int,int,int>> seg_data; // vertex_in, vertex_out, seg_type for each duct segment
 };
 
 #endif /* CMINIGLANDDUCT_H_ */

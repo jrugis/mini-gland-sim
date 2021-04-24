@@ -25,38 +25,26 @@ cDuctSegment::cDuctSegment(cMiniGlandDuct* _parent, int _seg_number) : parent(_p
 {
   id = parent->id + "s" + std::to_string(seg_number+1); // NOTE: one based segment id
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
+  p = parent->p; // the parameters map
 
-  utils::get_parameters(PARAMETER_FILE_NAME, p, out); // NOTE: all the parameters are in this file
-  create_cells(get_segment_data());
-  out << "<DuctSegment> Cell count: " << cells.size() << std::endl;
-}
-
-cDuctSegment::~cDuctSegment() { 
-  for(int i = 0; i<cells.size(); i++) delete cells[i]; // delete the cells
-  out.close(); 
-}
-
-std::tuple<int,int> cDuctSegment::get_segment_data(){
+  // get the duct segment data
   std::string line;                    // file line buffer
   std::vector<std::string> tokens;     // tokenized line
   std::vector<Vector3d> verts;
-
-  std::ifstream mesh_file(MESH_FILE_NAME); // open the mesh file
-  if (not mesh_file.is_open()) { utils::fatal_error("cell file " + std::string(MESH_FILE_NAME) + " could not be opened", out); }
-
+  // open the mesh file
+  std::ifstream mesh_file(MESH_FILE_NAME); 
+  if (not mesh_file.is_open()) { utils::fatal_error("mesh file " + std::string(MESH_FILE_NAME) + " could not be opened", out); }
   // get the duct node vertex count
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
   	if (tokens[1]=="duct_node" ) break;
   }
   int nnodes = atoi(tokens[2].c_str());
-
   // skip over the rest of the header
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
   	if (tokens[0]=="end_header" ) break;
   }
-
   // get the node data
   for(int i=0; i<nnodes; i++){
   	getline(mesh_file, line);
@@ -72,18 +60,24 @@ std::tuple<int,int> cDuctSegment::get_segment_data(){
   inner_diameter = atof(tokens[2].c_str());
   outer_diameter = atof(tokens[3].c_str());
   seg_type = atoi(tokens[4].c_str());
-
+  int ncells = atoi(tokens[5].c_str());
+  int icells = atoi(tokens[6].c_str());
   mesh_file.close();
 
-  // return tuple of cell count and start index
-  return(std::make_tuple( atoi(tokens[5].c_str()), atoi(tokens[6].c_str())));
+  // create the cells
+  out << "<DuctSegment> Cell count: " << ncells << std::endl;
+  for(int i=0; i<ncells; i++){
+	if(seg_type == ACINUS) cells.push_back(new cCellAcinus(this, i+icells));
+	else if(seg_type == INTERCALATED) cells.push_back(new cCellIntercalated(this, i+icells));
+	else if(seg_type == STRIATED) cells.push_back(new cCellStriated(this, i+icells));
+  }
 }
 
-// TO DO 
-// create cells of same type as segment given cell count and start index
-void cDuctSegment::create_cells(std::tuple<int,int> cell_info){}
+cDuctSegment::~cDuctSegment() { 
+  for(int i = 0; i<cells.size(); i++) delete cells[i]; // delete the cells
+  out.close(); 
+}
 
-// TO DO change "run" to "step", in cells too...
-void cDuctSegment::run()
+void cDuctSegment::step()
 {
 }

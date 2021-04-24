@@ -12,13 +12,15 @@
 #include <string>
 #include <unordered_map>
 
+#include "global_defs.hpp"
+
 class cDuctSegment;
 
 class cCell {
   public:
   cCell(cDuctSegment* parent, int cell_number);
-  ~cCell();
-  void run();
+  virtual ~cCell();
+  virtual void step();
 
   private:
   cDuctSegment* parent;
@@ -31,8 +33,24 @@ class cCell {
   MatrixN3d verts;           
   MatrixN3i faces;
   MatrixN4i tets;
+};
 
-  void get_cell_data();
+class cCellAcinus : public cCell {
+public:
+  cCellAcinus(cDuctSegment* parent, int cell_number) : cCell(parent, cell_number){}; 
+  virtual void step();	
+};
+
+class cCellIntercalated : public cCell {
+public:
+  cCellIntercalated(cDuctSegment* parent, int cell_number) : cCell(parent, cell_number){};
+  virtual void step();	
+};
+
+class cCellStriated : public cCell {
+public:
+  cCellStriated(cDuctSegment* parent, int cell_number) : cCell(parent, cell_number){};
+  virtual void step();	
 };
 
 #endif /* CCELL_H_ */

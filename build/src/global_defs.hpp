@@ -17,6 +17,10 @@
 #define MESH_FILE_NAME "m.ply"
 #define DIAGNOSTIC_FILE_EXTENSION ".out"
 
+#define ACINUS 0
+#define INTERCALATED 1
+#define STRIATED 2
+
 //************************************************************************
 // some convenience typedefs
 typedef Eigen::Matrix<double, Eigen::Dynamic, 1> MatrixN1d;

@@ -7,6 +7,4 @@
 
 #include "cDuctSegment.hpp"
 
-void cDuctSegmentIntercalated::create_cells(std::tuple<int,int> cell_info){}
-
-void cDuctSegmentIntercalated::run(){}
+void cDuctSegmentIntercalated::step(){}

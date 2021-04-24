@@ -24,34 +24,50 @@ cMiniGlandDuct::cMiniGlandDuct()
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
   utils::get_parameters(PARAMETER_FILE_NAME, p, out); // NOTE: all the parameters are in this file
 
-  // TO DO - get segment data and create segments
-  // push_back the different seg types
-  
-  // create duct segments
-  //int nsegs = get_element_count();
-  //for(int i =0; i<nsegs; i++){
-  //	  segments.push_back(new cDuctSegment(this, i));
-  //}
-  //out << "<MiniGlandDuct> Segment count: " << segments.size() << std::endl;
+  // get duct segment summary data
+  std::string line;                    // file line buffer
+  std::vector<std::string> tokens;     // tokenized line
+  std::ifstream mesh_file(MESH_FILE_NAME); // open the mesh file
+  if (not mesh_file.is_open()) { utils::fatal_error("mesh file " + std::string(MESH_FILE_NAME) + " could not be opened", out); }
+  // get the duct node count
+  while (getline(mesh_file, line)) {
+  	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
+  	if (tokens[1]=="duct_node" ) break;
+  }
+  int nnodes = atoi(tokens[2].c_str());
+  // get the duct segment count
+  while (getline(mesh_file, line)) {
+  	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
+  	if (tokens[1]=="duct_segment" ) break;
+  }
+  int nsegs = atoi(tokens[2].c_str());
+  // skip over the rest of the header
+  while (getline(mesh_file, line)) {
+  	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
+  	if (tokens[0]=="end_header" ) break;
+  }
+  // skip over the duct nodes
+  for(int i=0; i<nnodes; i++) getline(mesh_file, line);	
+
+  // get data for each duct segment and create duct segment objects
+  for(int i=0; i<nsegs; i++){
+	getline(mesh_file, line);
+    boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
+    int vertex_in = atoi(tokens[0].c_str());
+    int vertex_out = atoi(tokens[1].c_str());
+    int seg_type = atoi(tokens[4].c_str());
+	if(seg_type == ACINUS) segments.push_back(new cDuctSegmentAcinus(this, i));
+	else if(seg_type == INTERCALATED) segments.push_back(new cDuctSegmentIntercalated(this, i));
+	else if(seg_type == STRIATED) segments.push_back(new cDuctSegmentStriated(this, i));
+	seg_data.push_back(std::make_tuple(vertex_in, vertex_out, seg_type));
+  }
+  mesh_file.close();
+  out << "<MiniGlandDuct> Segment count: " << segments.size() << std::endl;
 }
 
 cMiniGlandDuct::~cMiniGlandDuct() { 
   for(int i = 0; i<segments.size(); i++) delete segments[i]; // delete the duct segments
   out.close(); // close the diagnostic file
-}
-
-std::tuple<int, std::vector<int>> cMiniGlandDuct::get_segment_data()
-{
-  std::string line;                    // file line buffer
-  std::vector<std::string> tokens;     // tokenized line
-  std::ifstream mesh_file(MESH_FILE_NAME); // open the mesh file
-  if (not mesh_file.is_open()) { utils::fatal_error("cell file " + std::string(MESH_FILE_NAME) + " could not be opened", out); }
-  while (getline(mesh_file, line)) {
-	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-	if (tokens[1]=="duct_segment") break;
-  }
-  mesh_file.close();
-  return(atoi(tokens[2].c_str()));
 }
 
 void cMiniGlandDuct::run()

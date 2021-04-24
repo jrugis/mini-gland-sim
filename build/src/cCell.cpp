@@ -24,27 +24,14 @@ cCell::cCell(cDuctSegment* _parent, int _cell_number) : parent(_parent), cell_nu
 {
   id = parent->id + "c" + std::to_string(cell_number+1); // NOTE: one based cell id
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
-  utils::get_parameters(PARAMETER_FILE_NAME, p, out); // NOTE: all the parameters are in this file
-}
+  p = parent->p; // the parameters map
 
-cCell::~cCell() { out.close(); }
-
-void cCell::get_cell_data(){
+  // get the cell data summary over all cells
   std::string line;                    // file line buffer
   std::vector<std::string> tokens;     // tokenized line
-
   // open the mesh file
   std::ifstream mesh_file(MESH_FILE_NAME); 
   if (not mesh_file.is_open()) { utils::fatal_error("cell file " + std::string(MESH_FILE_NAME) + " could not be opened", out); }
-  // get counts and indices for vertices, faces and tetrahedrons for this cell
-  while (getline(mesh_file, line)) {
-  	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-  	if (tokens[1]=="cell" ) break;
-  }
-  // TO DO next.................
-  // skip to this cell
-  // get n&i for verts, faces, tets
-
   // get the total mesh vertex count
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
@@ -63,21 +50,30 @@ void cCell::get_cell_data(){
   	if (tokens[1]=="tetrahedron" ) break;
   }
   int tntets = atoi(tokens[2].c_str());
+  while (getline(mesh_file, line)) {
+  	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
+  	if (tokens[1]=="cell" ) break;
+  }
+  int tncells = atoi(tokens[2].c_str());
   // skip over the rest of the header
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
   	if (tokens[0]=="end_header" ) break;
   }
 
+  // TO DO next.................
+  // skip to this cell
+  // get n&i for verts, faces, tets
   // get vertices for this cell
-
   // get faces for this cell
-
   // get tetrahedra for this cell
   
   mesh_file.close();
+  
 }
 
-void cCell::run()
+cCell::~cCell() { out.close(); }
+
+void cCell::step()
 {
 }
