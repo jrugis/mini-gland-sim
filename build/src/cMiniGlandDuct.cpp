@@ -9,8 +9,12 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/tokenizer.hpp>
+#include <algorithm>
+#include <execution>
+#include <iomanip>
 #include <iostream>
 #include <string>
+#include <thread>
 
 #include "global_defs.hpp"
 #include "utils.hpp"
@@ -66,36 +70,45 @@ cMiniGlandDuct::cMiniGlandDuct()
 }
 
 cMiniGlandDuct::~cMiniGlandDuct() { 
-  for(int i = 0; i<segments.size(); i++) delete segments[i]; // delete the duct segments
+  for(unsigned int i = 0; i<segments.size(); i++) delete segments[i]; // delete the duct segments
   out.close(); // close the diagnostic file
 }
 
 void cMiniGlandDuct::run()
 {
-  /*  double t = 0.0;
-    double solver_dt = p.at("delT");
-    double error;
-    struct timespec start, end;
-    double elapsed;
+  double t = 0.0;
+  double solver_dt = p.at("delT");
+  struct timespec start, end;
+  double elapsed;
 
-    // simulation time stepping and synchronization
-    clock_gettime(CLOCK_REALTIME, &start);
-    while ((p.at("totalT") - t) > 0.000001) { // HARD CODED: assumes solver_dt always > 1us
-      error = snd_recv(t, solver_dt);         // invoke the calcium solver
-      if (error != 0.0) {
-        // ...   change time step???
-      }
-      // invoke lumen step ???
+  // simulation time stepping and synchronization
+  clock_gettime(CLOCK_REALTIME, &start);
+  while ((p.at("totalT") - t) > 0.000001) { // HARD CODED: assumes solver_dt always > 1us
 
-      clock_gettime(CLOCK_REALTIME, &end);
-      elapsed = (end.tv_sec - start.tv_sec) + ((end.tv_nsec - start.tv_nsec) / 1000000000.0);
-      out << std::fixed << std::setprecision(3);
-      out << "<Acinus> step duration: " << elapsed << "s" << std::endl;
-      start = end;
-      t += solver_dt;
-    }
+    // concurrent duct segment step  
+    //std::vector<std::thread> threads;
+    //for(auto seg : segments) {
+    //  threads.emplace_back([&](){seg->step();}); // NOTE: step function passed by reference
+    //}
+    //for(auto& t : threads) t.join(); // wait for all duct segment threads to complete
+    //for(auto seg : segments) {
+	//	seg->step();
+	//}
+	std::for_each(std::execution::par_unseq, segments.begin(), segments.end(), [](auto&& seg)
+	{
+	  seg->step();
+	});
 
-    // instruct cells to finish
-    snd_recv(t, 0.0);
-    */
+
+    // combine duct segment fluid flow  --  TO DO
+    // ....
+	
+    // output step running time
+    clock_gettime(CLOCK_REALTIME, &end);
+    elapsed = (end.tv_sec - start.tv_sec) + ((end.tv_nsec - start.tv_nsec) / 1000000000.0);
+    out << std::fixed << std::setprecision(3);
+    out << "<MiniGlandDuct> step duration: " << elapsed << "s" << std::endl;
+    start = end;
+    t += solver_dt;
+  }
 }

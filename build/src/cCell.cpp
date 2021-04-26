@@ -73,7 +73,3 @@ cCell::cCell(cDuctSegment* _parent, int _cell_number) : parent(_parent), cell_nu
 }
 
 cCell::~cCell() { out.close(); }
-
-void cCell::step()
-{
-}

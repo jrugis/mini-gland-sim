@@ -74,10 +74,6 @@ cDuctSegment::cDuctSegment(cMiniGlandDuct* _parent, int _seg_number) : parent(_p
 }
 
 cDuctSegment::~cDuctSegment() { 
-  for(int i = 0; i<cells.size(); i++) delete cells[i]; // delete the cells
+  for(unsigned int i = 0; i<cells.size(); i++) delete cells[i]; // delete the cells
   out.close(); 
-}
-
-void cDuctSegment::step()
-{
 }

@@ -5,14 +5,33 @@
  *      Author: jrugis
  */
 
+#include <thread>
+
+#include "cCell.hpp"
 #include "cDuctSegment.hpp"
 
-void cDuctSegmentStriated::step(){}
+cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* parent, int seg_number) : cDuctSegment(parent, seg_number){}
 
-// TO DO 
-// create cells of same type as segment given cell count and start index
+void cDuctSegmentStriated::step(){
 
-// NOTE - do this to the cells vector in the derived class access the the cell data 
-//  Base* basepointer = new Derived;
-//  static_cast<Derived*>(basepointer)->derived_int; // Can now access
+  // concurrent cells step  
+  //std::vector<std::thread> threads;
+  //for(auto cell : cells) {
+  //  threads.emplace_back([&](){cell->step();}); // NOTE: step function passed by reference
+  //}
+  //for(auto& t : threads) t.join(); // wait for all cell threads to complete
 
+  for(auto cell : cells){
+  	cell->step();
+  }
+
+
+  // combine cells fluid flow  --  TO DO
+  // ....
+
+  // NOTE - do this to the cells vector in the derived class access the the cell data 
+  //  Base* basepointer = new Derived;
+  //  static_cast<Derived*>(basepointer)->derived_int; // Can now access
+  
+ out << "<DuctSegmentStriated> step" << std::endl;
+}

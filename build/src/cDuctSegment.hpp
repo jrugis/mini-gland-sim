@@ -16,15 +16,21 @@
 #include "global_defs.hpp"
 
 class cMiniGlandDuct;
+class cDuctSegmentAcinus;
+class cDuctSegmentIntercalated;
+class cDuctSegmentStriated;
 class cCell;
 
 class cDuctSegment {
-  friend cCell; // child object
-	
+  friend cDuctSegmentAcinus;     // derived classes
+  friend cDuctSegmentIntercalated;
+  friend cDuctSegmentStriated;
+  friend cCell;                  // child object
+
   public:
   cDuctSegment(cMiniGlandDuct* parent, int seg_number);
   virtual ~cDuctSegment();
-  virtual void step();
+  virtual void step(){};  // redefined in the derived classes
 
   // the actual in/out fluid flow data variables should go here for the duct object to read & write
 
@@ -43,19 +49,19 @@ class cDuctSegment {
 
 class cDuctSegmentAcinus : public cDuctSegment {
 public:
-  cDuctSegmentAcinus(cMiniGlandDuct* parent, int seg_number) : cDuctSegment(parent, seg_number){}; 
+  cDuctSegmentAcinus(cMiniGlandDuct* parent, int seg_number); 
   virtual void step();	
 };
 
 class cDuctSegmentIntercalated : public cDuctSegment {
 public:
-  cDuctSegmentIntercalated(cMiniGlandDuct* parent, int seg_number) : cDuctSegment(parent, seg_number){};
+  cDuctSegmentIntercalated(cMiniGlandDuct* parent, int seg_number);
   virtual void step();	
 };
 
 class cDuctSegmentStriated : public cDuctSegment {
 public:
-  cDuctSegmentStriated(cMiniGlandDuct* parent, int seg_number) : cDuctSegment(parent, seg_number){};
+  cDuctSegmentStriated(cMiniGlandDuct* parent, int seg_number);
   virtual void step();	
 };
 

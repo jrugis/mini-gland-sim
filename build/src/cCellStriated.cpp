@@ -7,4 +7,9 @@
 
 #include "cCell.hpp"
 
-void cCellStriated::step(){}
+void cCellStriated::step(){
+  // TO DO
+  // ...
+		
+  out << "<CellStriated> step" << std::endl;
+}

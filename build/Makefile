@@ -13,8 +13,9 @@
 ##
 ###########################################################################################
 ## C++
-CPP_DEFS = -std=c++11
-CPP = g++
+CPP_DEFS = -std=c++17
+#CPP = g++ 
+CPP = gcc-10
 
 ###########################################################################################
 ## NOTE: uncomment block for ONE of debug, profile or optimised
@@ -32,9 +33,11 @@ CPP_FLAGS =  $(CPP_DEFS) -m64 -O3 -march=native -mtune=native -Wall -Wpedantic -
 ###########################################################################################
 ## NOTE: uncomment lines for ONE platform
 #CPP_INCLUDES = -I/usr/include  # mahuika 
-CPP_INCLUDES = -I/usr/local/include/eigen3 # iMac
+CPP_INCLUDES = -I/usr/local/include/eigen3 -I/usr/local/Cellar/boost/1.75.0_2/include -I/usr/local/Cellar/boost/1.75.0_2/lib # iMac
 
-CPP_LIBS = -lsundials_cvodes
+#CPP_LIBS = -lsundials_cvodes
+#CPP_LIBS = -l/usr/local/Cellar/boost/1.75.0_2/lib  # iMac
+CPP_LIBS = -lboost_system
 
 ###########################################################################################
 
