@@ -15,21 +15,21 @@
 #include "global_defs.hpp"
 
 class cDuctSegment;
-class cCellAcinus;
-class cCellIntercalated;
-class cCellStriated;
+//class cCellAcinus;
+//class cCellIntercalated;
+//class cCellStriated;
 
 class cCell {
-  friend cCellAcinus;        // derived classes
-  friend cCellIntercalated;
-  friend cCellStriated;
+  //friend cCellAcinus;        // derived classes
+  //friend cCellIntercalated;
+  //friend cCellStriated;
 
   public:
   cCell(cDuctSegment* parent, int cell_number);
   virtual ~cCell();
   virtual void step(){}; // defined in dervied class
 
-  private:
+protected:
   cDuctSegment* parent;
   std::string id;
   std::ofstream out;                         // runtime diagnostic file for this object

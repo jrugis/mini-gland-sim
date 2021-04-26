@@ -39,7 +39,7 @@ cDuctSegment::cDuctSegment(cMiniGlandDuct* _parent, int _seg_number) : parent(_p
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
   	if (tokens[1]==std::string("duct_node") ) break;
   }
-  int nnodes = atoi(tokens[2].c_str());
+  int nnodes = std::stoi(tokens[2]);
   // skip over the rest of the header
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
@@ -49,19 +49,19 @@ cDuctSegment::cDuctSegment(cMiniGlandDuct* _parent, int _seg_number) : parent(_p
   for(int i=0; i<nnodes; i++){
   	getline(mesh_file, line);
 	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-	verts.push_back(Vector3d(atof(tokens[0].c_str()), atof(tokens[1].c_str()), atof(tokens[2].c_str())));
+	verts.push_back(Vector3d(std::stof(tokens[0]), std::stof(tokens[1]), std::stof(tokens[2])));
   }
 
   // skip to the correct segment and get the data
   for(int i=0; i<seg_number+1; i++) getline(mesh_file, line);
   boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-  vertex_in = verts[atoi(tokens[0].c_str())];
-  vertex_out = verts[atoi(tokens[1].c_str())];
-  inner_diameter = atof(tokens[2].c_str());
-  outer_diameter = atof(tokens[3].c_str());
-  seg_type = atoi(tokens[4].c_str());
-  int ncells = atoi(tokens[5].c_str());
-  int icells = atoi(tokens[6].c_str());
+  vertex_in = verts[std::stoi(tokens[0])];
+  vertex_out = verts[std::stoi(tokens[1])];
+  inner_diameter = std::stof(tokens[2]);
+  outer_diameter = std::stof(tokens[3]);
+  seg_type = std::stoi(tokens[4]);
+  int ncells = std::stoi(tokens[5]);
+  int icells = std::stoi(tokens[6]);
   mesh_file.close();
 
   // create the cells

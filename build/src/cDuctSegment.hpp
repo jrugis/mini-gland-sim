@@ -16,15 +16,9 @@
 #include "global_defs.hpp"
 
 class cMiniGlandDuct;
-class cDuctSegmentAcinus;
-class cDuctSegmentIntercalated;
-class cDuctSegmentStriated;
 class cCell;
 
 class cDuctSegment {
-  friend cDuctSegmentAcinus;     // derived classes
-  friend cDuctSegmentIntercalated;
-  friend cDuctSegmentStriated;
   friend cCell;                  // child object
 
   public:
@@ -34,13 +28,13 @@ class cDuctSegment {
 
   // the actual in/out fluid flow data variables should go here for the duct object to read & write
 
-  private:
+  protected:
   cMiniGlandDuct* parent;
   std::string id;
   std::ofstream out;                         // runtime diagnostic file for this object
   std::unordered_map<std::string, double> p; // the model parameters
-  int seg_number;                          // this segment number
 
+  int seg_number;                          // this segment number
   int seg_type;                            // type of this duct segment 
   Vector3d vertex_in, vertex_out;          // input and output center points for this duct segment
   double inner_diameter, outer_diameter;   // inner and outer diameter of this duct segment

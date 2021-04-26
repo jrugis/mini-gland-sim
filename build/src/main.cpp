@@ -3,9 +3,15 @@
  *
  *  Created on: 21/04/2021
  *      Author: jrugis
+ *
+ *  NOTE:
+ *    environment variables:
+ *      OPM_NUM_THREADS = 30
+ *      OMP_NESTED = TRUE 
  */
 
 #include <iostream>
+#include <omp.h>
 #include <time.h>
 #include <unistd.h>
 
@@ -26,9 +32,10 @@ int main(int argc, char** args)
   char temp[TEMP_SIZE];
   gethostname(temp, TEMP_SIZE);
   host_name = temp;
-
-  // run the simulation
   std::cout << "<main> running on host: " << host_name << std::endl;
+  std::cout << "<main> maximum threads: " << omp_get_max_threads() << std::endl;
+  
+  // run the simulation
   cMiniGlandDuct* duct = new cMiniGlandDuct();
   duct->run();
   delete duct;

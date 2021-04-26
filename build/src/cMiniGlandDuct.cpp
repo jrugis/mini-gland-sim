@@ -37,16 +37,16 @@ cMiniGlandDuct::cMiniGlandDuct()
   // get the duct node count
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-  	if (tokens[1]==std::string("duct_node") ) break;
+  	if (tokens[1]==std::string("duct_node")) break;
   }
-  int nnodes = atoi(tokens[2].c_str());
+  int nnodes = std::stoi(tokens[2]);
 
   // get the duct segment count
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
   	if (tokens[1]==std::string("duct_segment") ) break;
   }
-  int nsegs = atoi(tokens[2].c_str());
+  int nsegs = std::stoi(tokens[2]);
   // skip over the rest of the header
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
@@ -59,9 +59,9 @@ cMiniGlandDuct::cMiniGlandDuct()
   for(int i=0; i<nsegs; i++){
 	getline(mesh_file, line);
     boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-    int vertex_in = atoi(tokens[0].c_str());
-    int vertex_out = atoi(tokens[1].c_str());
-    int seg_type = atoi(tokens[4].c_str());
+    int vertex_in = std::stoi(tokens[0]);
+    int vertex_out = std::stoi(tokens[1]);
+    int seg_type = std::stoi(tokens[4]);
 	if(seg_type == ACINUS) segments.push_back(new cDuctSegmentAcinus(this, i));
 	else if(seg_type == INTERCALATED) segments.push_back(new cDuctSegmentIntercalated(this, i));
 	else if(seg_type == STRIATED) segments.push_back(new cDuctSegmentStriated(this, i));
@@ -95,6 +95,7 @@ void cMiniGlandDuct::run()
     //}
     //for(auto& t : threads) t.join(); // wait for all duct segment threads to complete
     
+    #pragma omp parallel for
 	for(auto seg : segments) {
 	  seg->step();
     }
