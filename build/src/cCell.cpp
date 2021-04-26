@@ -35,30 +35,30 @@ cCell::cCell(cDuctSegment* _parent, int _cell_number) : parent(_parent), cell_nu
   // get the total mesh vertex count
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-  	if (tokens[1]=="vertex" ) break;
+  	if (tokens[1]==std::string("vertex") ) break;
   }
   int tnverts = atoi(tokens[2].c_str());
   // get the total face count
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-  	if (tokens[1]=="face" ) break;
+  	if (tokens[1]==std::string("face") ) break;
   }
   int tnfaces = atoi(tokens[2].c_str());
   // get the total tetrahedron count
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-  	if (tokens[1]=="tetrahedron" ) break;
+  	if (tokens[1]==std::string("tetrahedron") ) break;
   }
   int tntets = atoi(tokens[2].c_str());
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-  	if (tokens[1]=="cell" ) break;
+  	if (tokens[1]==std::string("cell") ) break;
   }
   int tncells = atoi(tokens[2].c_str());
   // skip over the rest of the header
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-  	if (tokens[0]=="end_header" ) break;
+  	if (tokens[0]==std::string("end_header") ) break;
   }
 
   // TO DO next.................

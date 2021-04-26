@@ -5,7 +5,7 @@
  *      Author: jrugis
  */
 
-#include <thread>
+//#include <thread>
 
 #include "cCell.hpp"
 #include "cDuctSegment.hpp"

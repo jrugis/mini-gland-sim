@@ -37,13 +37,13 @@ cDuctSegment::cDuctSegment(cMiniGlandDuct* _parent, int _seg_number) : parent(_p
   // get the duct node vertex count
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-  	if (tokens[1]=="duct_node" ) break;
+  	if (tokens[1]==std::string("duct_node") ) break;
   }
   int nnodes = atoi(tokens[2].c_str());
   // skip over the rest of the header
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-  	if (tokens[0]=="end_header" ) break;
+  	if (tokens[0]==std::string("end_header") ) break;
   }
   // get the node data
   for(int i=0; i<nnodes; i++){

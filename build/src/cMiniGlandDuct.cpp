@@ -9,12 +9,12 @@
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
 #include <boost/tokenizer.hpp>
-#include <algorithm>
-#include <execution>
+//#include <algorithm>
+//#include <execution>
 #include <iomanip>
 #include <iostream>
 #include <string>
-#include <thread>
+//#include <thread>
 
 #include "global_defs.hpp"
 #include "utils.hpp"
@@ -33,22 +33,24 @@ cMiniGlandDuct::cMiniGlandDuct()
   std::vector<std::string> tokens;     // tokenized line
   std::ifstream mesh_file(MESH_FILE_NAME); // open the mesh file
   if (not mesh_file.is_open()) { utils::fatal_error("mesh file " + std::string(MESH_FILE_NAME) + " could not be opened", out); }
+
   // get the duct node count
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-  	if (tokens[1]=="duct_node" ) break;
+  	if (tokens[1]==std::string("duct_node") ) break;
   }
   int nnodes = atoi(tokens[2].c_str());
+
   // get the duct segment count
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-  	if (tokens[1]=="duct_segment" ) break;
+  	if (tokens[1]==std::string("duct_segment") ) break;
   }
   int nsegs = atoi(tokens[2].c_str());
   // skip over the rest of the header
   while (getline(mesh_file, line)) {
   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-  	if (tokens[0]=="end_header" ) break;
+  	if (tokens[0]==std::string("end_header") ) break;
   }
   // skip over the duct nodes
   for(int i=0; i<nnodes; i++) getline(mesh_file, line);	
@@ -65,6 +67,7 @@ cMiniGlandDuct::cMiniGlandDuct()
 	else if(seg_type == STRIATED) segments.push_back(new cDuctSegmentStriated(this, i));
 	seg_data.push_back(std::make_tuple(vertex_in, vertex_out, seg_type));
   }
+    
   mesh_file.close();
   out << "<MiniGlandDuct> Segment count: " << segments.size() << std::endl;
 }
@@ -91,13 +94,15 @@ void cMiniGlandDuct::run()
     //  threads.emplace_back([&](){seg->step();}); // NOTE: step function passed by reference
     //}
     //for(auto& t : threads) t.join(); // wait for all duct segment threads to complete
-    //for(auto seg : segments) {
-	//	seg->step();
-	//}
-	std::for_each(std::execution::par_unseq, segments.begin(), segments.end(), [](auto&& seg)
-	{
+    
+	for(auto seg : segments) {
 	  seg->step();
-	});
+    }
+	
+	//std::for_each(std::execution::par_unseq, segments.begin(), segments.end(), [](auto&& seg)
+	//{
+	//  seg->step();
+	//});
 
 
     // combine duct segment fluid flow  --  TO DO
