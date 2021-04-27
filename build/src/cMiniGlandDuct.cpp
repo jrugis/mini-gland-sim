@@ -5,16 +5,9 @@
  *      Author: jrugis
  */
 
-#include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/classification.hpp>
-#include <boost/algorithm/string/split.hpp>
-#include <boost/tokenizer.hpp>
-//#include <algorithm>
-//#include <execution>
 #include <iomanip>
 #include <iostream>
 #include <string>
-//#include <thread>
 
 #include "global_defs.hpp"
 #include "utils.hpp"
@@ -28,37 +21,17 @@ cMiniGlandDuct::cMiniGlandDuct()
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
   utils::get_parameters(PARAMETER_FILE_NAME, p, out); // NOTE: all the parameters are in this file
 
-  // get duct segment summary data
-  std::string line;                    // file line buffer
-  std::vector<std::string> tokens;     // tokenized line
-  std::ifstream mesh_file(MESH_FILE_NAME); // open the mesh file
-  if (not mesh_file.is_open()) { utils::fatal_error("mesh file " + std::string(MESH_FILE_NAME) + " could not be opened", out); }
-
-  // get the duct node count
-  while (getline(mesh_file, line)) {
-  	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-  	if (tokens[1]==std::string("duct_node")) break;
-  }
-  int nnodes = std::stoi(tokens[2]);
-
-  // get the duct segment count
-  while (getline(mesh_file, line)) {
-  	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-  	if (tokens[1]==std::string("duct_segment") ) break;
-  }
-  int nsegs = std::stoi(tokens[2]);
-  // skip over the rest of the header
-  while (getline(mesh_file, line)) {
-  	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-  	if (tokens[0]==std::string("end_header") ) break;
-  }
-  // skip over the duct nodes
-  for(int i=0; i<nnodes; i++) getline(mesh_file, line);	
+  // get duct segment mesh data
+  std::ifstream mesh_file;
+  utils::mesh_open(mesh_file, out);                                          // open the mesh file
+  int nnodes = utils::mesh_get_count(mesh_file, std::string("duct_node"));   // get the duct node count
+  int nsegs = utils::mesh_get_count(mesh_file, std::string("duct_segment")); // get the duct segment count
+  utils::mesh_end_header(mesh_file);                                         // skip over the rest of the header
+  utils::mesh_skip_lines(mesh_file, nnodes);         	                     // skip over the duct node data
 
   // get data for each duct segment and create duct segment objects
   for(int i=0; i<nsegs; i++){
-	getline(mesh_file, line);
-    boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
+	std::vector<std::string> tokens = utils::mesh_get_tokens(mesh_file);
     int vertex_in = std::stoi(tokens[0]);
     int vertex_out = std::stoi(tokens[1]);
     int seg_type = std::stoi(tokens[4]);
@@ -68,7 +41,7 @@ cMiniGlandDuct::cMiniGlandDuct()
 	seg_data.push_back(std::make_tuple(vertex_in, vertex_out, seg_type));
   }
     
-  mesh_file.close();
+  mesh_file.close();                                                           
   out << "<MiniGlandDuct> Segment count: " << segments.size() << std::endl;
 }
 
@@ -88,24 +61,11 @@ void cMiniGlandDuct::run()
   clock_gettime(CLOCK_REALTIME, &start);
   while ((p.at("totalT") - t) > 0.000001) { // HARD CODED: assumes solver_dt always > 1us
 
-    // concurrent duct segment step  
-    //std::vector<std::thread> threads;
-    //for(auto seg : segments) {
-    //  threads.emplace_back([&](){seg->step();}); // NOTE: step function passed by reference
-    //}
-    //for(auto& t : threads) t.join(); // wait for all duct segment threads to complete
-    
     #pragma omp parallel for
 	for(auto seg : segments) {
 	  seg->step();
     }
 	
-	//std::for_each(std::execution::par_unseq, segments.begin(), segments.end(), [](auto&& seg)
-	//{
-	//  seg->step();
-	//});
-
-
     // combine duct segment fluid flow  --  TO DO
     // ....
 	

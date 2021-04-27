@@ -77,30 +77,46 @@ double utils::get_distance(const Vector3d& p, const Vector3d& v, const Vector3d&
   return ((projection - p).norm());                                 // return distance(p, projection)
 }
 
-/*
-void utils::read_mesh(const std::string file_name, sMeshVals& mesh_vals, std::ofstream& out)
-{
-  std::ifstream cell_file(file_name + ".bmsh", std::ios::in | std::ios::binary); // open the mesh file
-  if (not cell_file.is_open()) { fatal_error("mesh file " + file_name + " could not be opened", out); }
-
-  // get the mesh vertices (int count, 3x-double vertices)
-  cell_file.read(reinterpret_cast<char*>(&(mesh_vals.vertices_count)), sizeof(int));
-  mesh_vals.vertices.resize(mesh_vals.vertices_count, Eigen::NoChange);
-  cell_file.read(reinterpret_cast<char*>(mesh_vals.vertices.data()), 3 * mesh_vals.vertices_count * sizeof(double));
-
-  // get the surface triangles (int count, 3x-int vertex indices)
-  cell_file.read(reinterpret_cast<char*>(&(mesh_vals.surface_triangles_count)), sizeof(int));
-  mesh_vals.surface_triangles.resize(mesh_vals.surface_triangles_count, Eigen::NoChange);
-  cell_file.read(reinterpret_cast<char*>(mesh_vals.surface_triangles.data()), 3 * mesh_vals.surface_triangles_count * sizeof(int));
-
-  // get the element tetrahedrons (int count, 4x-int vertex indices)
-  cell_file.read(reinterpret_cast<char*>(&(mesh_vals.tetrahedrons_count)), sizeof(int));
-  mesh_vals.tetrahedrons.resize(mesh_vals.tetrahedrons_count, Eigen::NoChange);
-  cell_file.read(reinterpret_cast<char*>(mesh_vals.tetrahedrons.data()), 4 * mesh_vals.tetrahedrons_count * sizeof(int));
-
-  cell_file.close();
+void utils::mesh_open(std::ifstream& mesh_file, std::ofstream& out){
+  mesh_file.open(MESH_FILE_NAME); // open the mesh file
+  if (not mesh_file.is_open()) fatal_error("mesh file " + std::string(MESH_FILE_NAME) + " could not be opened", out);
+  return;
 }
-*/
+
+int utils::mesh_get_count(std::ifstream &mesh_file, std::string tag){
+  std::string line;                    // file line buffer
+  std::vector<std::string> tokens;     // tokenized line
+  while (getline(mesh_file, line)) {
+   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
+   	if (tokens[1]==tag) break;
+  }
+  return(std::stoi(tokens[2]));
+}
+
+void utils::mesh_end_header(std::ifstream &mesh_file){
+  std::string line;                    // file line buffer
+  std::vector<std::string> tokens;     // tokenized line
+  while (getline(mesh_file, line)) {
+   	boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
+   	if (tokens[0]==std::string("end_header")) break;
+  }
+  return;
+}
+
+void utils::mesh_skip_lines(std::ifstream& mesh_file, int count){
+  std::string line;                    // file line buffer
+  for(int i=0; i<count; i++) getline(mesh_file, line);
+  return;
+}
+
+std::vector<std::string> utils::mesh_get_tokens(std::ifstream& mesh_file){
+  std::string line;                    // file line buffer
+  std::vector<std::string> tokens;     // tokenized line
+  getline(mesh_file, line);
+  boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
+  return(tokens);
+}
+
 void utils::save_matrix(const std::string file_name, int bytes, char* data)
 {
   std::ofstream data_file;
