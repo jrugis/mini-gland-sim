@@ -37,9 +37,10 @@ protected:
 
   int cell_number;           // this cell number
   int nverts, nfaces, ntets; // number of vertices, faces, tets for this cell
-  MatrixN3d verts;           
+  MatrixN3d verts;
   MatrixN3i faces;
   MatrixN4i tets;
+  MatrixN1i face_types;  // facec types for this cell          
 };
 
 class cCellAcinus : public cCell {

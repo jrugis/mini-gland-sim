@@ -13,7 +13,7 @@
 void cCellStriated::step(){
   // TO DO
   // ...
-  std::this_thread::sleep_for (std::chrono::milliseconds(20));
+  std::this_thread::sleep_for (std::chrono::milliseconds(200));
 
   //out << "<CellStriated> threads in use: " << omp_get_num_threads() << std::endl;
   out << "<CellStriated> step" << std::endl;
