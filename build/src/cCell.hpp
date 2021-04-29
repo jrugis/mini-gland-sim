@@ -24,7 +24,7 @@ class cCell {
   //friend cCellIntercalated;
   //friend cCellStriated;
 
-  public:
+public:
   cCell(cDuctSegment* parent, int cell_number);
   virtual ~cCell();
   virtual void step(){}; // defined in dervied class
@@ -40,7 +40,10 @@ protected:
   MatrixN3d verts;
   MatrixN3i faces;
   MatrixN4i tets;
-  MatrixN1i face_types;  // facec types for this cell          
+  MatrixN1i face_types;   // face types for this cell: 0=apical, 1=basolateral, 3=basal
+  MatrixN3d face_centers; //      centers 
+  MatrixN1d face_areas;   //      areas         
+
 };
 
 class cCellAcinus : public cCell {
@@ -57,7 +60,7 @@ public:
 
 class cCellStriated : public cCell {
 public:
-  cCellStriated(cDuctSegment* parent, int cell_number) : cCell(parent, cell_number){};
+  cCellStriated(cDuctSegment* parent, int cell_number);
   virtual void step();	
 };
 

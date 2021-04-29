@@ -32,6 +32,22 @@ void utils::calc_tri_centers(MatrixN3d& centers, const MatrixN3d& vertices, cons
   }
 }
 
+// calculate the area of each triangle
+void utils::calc_tri_areas(MatrixN1d& areas, const MatrixN3d& vertices, const MatrixN3i& triangles)
+{
+  areas.resize(triangles.rows(), Eigen::NoChange);
+  for (int n = 0; n < triangles.rows(); n++) {
+    Vector3d v1 = Vector3d(vertices.row((triangles)(n, 0)));
+    Vector3d v2 = Vector3d(vertices.row((triangles)(n, 1)));
+    Vector3d v3 = Vector3d(vertices.row((triangles)(n, 2)));
+    //Eigen::Matrix<double, 1, 3> side1 = vert.block<1, 3>(0, 0) - vert.block<1, 3>(1, 0);
+    //Eigen::Matrix<double, 1, 3> side2 = vert.block<1, 3>(0, 0) - vert.block<1, 3>(2, 0);
+	Vector3d side1 = v1 - v2;
+	Vector3d side2 = v1 - v3;
+    areas(n) = 0.5 * (side1.cross(side2)).norm();
+  }
+}
+
 // NOTE: outputs error message to stderr and the process "out" file
 void utils::fatal_error(const std::string msg, std::ofstream& out)
 {

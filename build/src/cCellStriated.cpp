@@ -10,6 +10,10 @@
 
 #include "cCell.hpp"
 
+cCellStriated::cCellStriated(cDuctSegment* parent, int cell_number) : cCell(parent, cell_number){
+  out << "<CellStriated> @constructor" << std::endl;
+}
+
 void cCellStriated::step(){
   // TO DO
   // ...
