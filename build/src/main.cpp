@@ -7,7 +7,7 @@
  *  NOTE:
  *    environment variables:
  *      OPM_NUM_THREADS = 30
- *      OMP_NESTED = TRUE 
+ *      OMP_NESTED = TRUE
  */
 
 #include <iostream>
@@ -34,7 +34,7 @@ int main(int argc, char** args)
   host_name = temp;
   std::cout << "<main> running on host: " << host_name << std::endl;
   std::cout << "<main> maximum threads: " << omp_get_max_threads() << std::endl;
-  
+
   // run the simulation
   cMiniGlandDuct* duct = new cMiniGlandDuct();
   duct->run();

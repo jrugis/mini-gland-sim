@@ -7,4 +7,4 @@
 
 #include "cCell.hpp"
 
-void cCellIntercalated::step(){}
+void cCellIntercalated::step() {}

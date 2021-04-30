@@ -15,10 +15,11 @@ git reset --hard origin/master
 Prerequisites
 -------------
 (could be put in .bash_profile)
-ml SUNDIALS/5.5.0-gimkl-2020a
-ml Eigen/3.3.7
-ml Boost/1.71.0-GCCcore-9.2.0
-ml Python/3.8.2-gimkl-2020a
+ml GCC
+ml Boost
+ml Eigen
+export OMP_NUM_THREADS=50
+export OMP_NESTED=TRUE
 
 
 Build
@@ -31,65 +32,13 @@ make
 Run
 ---
 cd mini-gland-sim/run
-
-cp run_default.sl my_run_xxxx.sl
-cp acinus_parms.dat my_acinus_parms_xxxx.dat
-cp sweep_parms_default.dat my_sweep_parms_xxxx.dat
-
-edit my_run_xxxx.sl
-edit my_acinus_parms_xxxx.dat
-edit my_sweep_parms_xxxx.dat
-
-python run_sim.py my_run_xxxx.sl lumen_tree.dat my_acinus_parms_xxxx.dat my_sweep_parms_xxxx.dat
-squeue -u UPI
+python run_sim_dev.py mini-gland.ply parms.dat
 
 
 Results
 -------
-cd /nesi/nobackup/nesi00119/your_name/mini-gland-sim/run/results/XXXX/XXXX
-summary_plot.pdf
-
-############################################################################################
-############################################################################################
-
-MPI Processes / Classes
-=======================
-1x MiniGlandDuct (main)
-	member class: Nx DuctSegment	
-		member class: Nx (CellAcinus OR CellIntercalated OR CellStriated)
-
-CellCalcium (virtual base class)
-	member class: 1x CellMesh
-	member class: 1x CellFlow (virtual base class)
-
-CellCalcium -> CellAcinus
-CellCalcium -> CellIntercalated
-CellCalcium -> CellStriated
-CellFlow - > CellFlowAcinus
-CellFlow - > CellFlowIntercalated
-CellFlow - > CellFlowStriated
+/nesi/nobackup/nesi00119/your_name/mini-gland-sim/results/XXXX
 
 
-MPI ranks and comms
-===================
-1x MiniGlandDuct (including Nx DuctSegment)
-Nx CellAcinus
-
-MiniGlandDuct <-> CellAcinus
-   time stepping
-CellAcinus <-> CellAcinus
-   cell-to-cell tight junction coupling (within each cell sim step)
-
-OMP 
-===
-Nx CellIntercalated
-Nx CellStriated
-
-
-
-
-
-
-   
 ############################################################################################
 ############################################################################################

@@ -15,21 +15,21 @@
 #include "global_defs.hpp"
 
 class cDuctSegment;
-//class cCellAcinus;
-//class cCellIntercalated;
-//class cCellStriated;
+// class cCellAcinus;
+// class cCellIntercalated;
+// class cCellStriated;
 
 class cCell {
-  //friend cCellAcinus;        // derived classes
-  //friend cCellIntercalated;
-  //friend cCellStriated;
+  // friend cCellAcinus;        // derived classes
+  // friend cCellIntercalated;
+  // friend cCellStriated;
 
-public:
+  public:
   cCell(cDuctSegment* parent, int cell_number);
   virtual ~cCell();
   virtual void step(){}; // defined in dervied class
 
-protected:
+  protected:
   cDuctSegment* parent;
   std::string id;
   std::ofstream out;                         // runtime diagnostic file for this object
@@ -41,27 +41,26 @@ protected:
   MatrixN3i faces;
   MatrixN4i tets;
   MatrixN1i face_types;   // face types for this cell: 0=apical, 1=basolateral, 3=basal
-  MatrixN3d face_centers; //      centers 
-  MatrixN1d face_areas;   //      areas         
-
+  MatrixN3d face_centers; //      centers
+  MatrixN1d face_areas;   //      areas
 };
 
 class cCellAcinus : public cCell {
-public:
-  cCellAcinus(cDuctSegment* parent, int cell_number) : cCell(parent, cell_number){}; 
-  virtual void step();	
+  public:
+  cCellAcinus(cDuctSegment* parent, int cell_number) : cCell(parent, cell_number){};
+  virtual void step();
 };
 
 class cCellIntercalated : public cCell {
-public:
+  public:
   cCellIntercalated(cDuctSegment* parent, int cell_number) : cCell(parent, cell_number){};
-  virtual void step();	
+  virtual void step();
 };
 
 class cCellStriated : public cCell {
-public:
+  public:
   cCellStriated(cDuctSegment* parent, int cell_number);
-  virtual void step();	
+  virtual void step();
 };
 
 #endif /* CCELL_H_ */

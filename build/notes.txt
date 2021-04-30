@@ -4,16 +4,17 @@
 Classes
 =======
 1x MiniGlandDuct (main)
-	member class: Nx DuctSegment	
-		member class: Nx Cell
+	contains member class: Nx any mix of DuctSegmentAcinus or DuctSegmentIntercalated or DuctSegmentStriated	
+		contains member class: Nx one type CellAcinus or CellIntercalated or CellStriated
 
-Cell (virtual base class)
-	member class: 1x CellMesh
+Virtual Base Classes
+====================
+DuctSegment: base for DuctSegmentAcinus, DuctSegmentIntercalated, DuctSegmentStriated	 
+Cell: base for CellAcinus, CellIntercalated, CellStriated
 
-Cell -> CellAcinus
-Cell -> CellIntercalated
-Cell -> CellStriated
-
+   
+############################################################################################
+############################################################################################
 
 Source code formatting
 ======================

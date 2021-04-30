@@ -2,9 +2,7 @@
 # mini-gland-sim excludes
 
 mini-gland-sim
-*/results/*
 my*
-
 *.ply
 
 #----------------------------------

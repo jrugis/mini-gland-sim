@@ -7,4 +7,4 @@
 
 #include "cCell.hpp"
 
-void cCellAcinus::step(){}
+void cCellAcinus::step() {}
