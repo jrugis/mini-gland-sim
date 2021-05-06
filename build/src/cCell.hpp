@@ -57,10 +57,4 @@ class cCellIntercalated : public cCell {
   virtual void step();
 };
 
-class cCellStriated : public cCell {
-  public:
-  cCellStriated(cDuctSegment* parent, int cell_number);
-  virtual void step();
-};
-
 #endif /* CCELL_H_ */

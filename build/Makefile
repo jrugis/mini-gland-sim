@@ -77,7 +77,7 @@ cCellAcinus.o: $(SRC)/cCellAcinus.cpp $(SRC)/cCell.hpp
 cCellIntercalated.o: $(SRC)/cCellIntercalated.cpp $(SRC)/cCell.hpp 
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
-cCellStriated.o: $(SRC)/cCellStriated.cpp $(SRC)/cCell.hpp 
+cCellStriated.o: $(SRC)/cCellStriated.cpp $(SRC)/cCellStriated.hpp 
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 

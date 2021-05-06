@@ -20,7 +20,7 @@ def make_label(s):
 print("mini_gland_sim")
 run_dir = os.getcwd()
 
-if(len(sys.argv) < 2):
+if(len(sys.argv) < 3):
   print("error: missing argument(s)")
   print("usage: python run_sim.py <mesh-file> <parameter-file>")
   quit()

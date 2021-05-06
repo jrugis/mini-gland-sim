@@ -39,23 +39,11 @@ typedef Eigen::Vector3i Vector3i;
 typedef Eigen::Vector4i Vector4i;
 
 //************************************************************************
-//************************************************************************
-// cell mesh values
-// struct sMeshVals {
-//  int vertices_count;
-//  int surface_triangles_count;
-//  int tetrahedrons_count;
-//  MatrixN3d vertices;          // 3x coordinate
-//  MatrixN3i surface_triangles; // 3x vertex
-//  MatrixN4i tetrahedrons;      // 4x vertex
-//};
-
-//************************************************************************
 // thermodynamic constants
-//#define R 8.314462100000000
-//#define T 310
-//#define F 9.645833650000000e4
-// const double RTF = 1000.0 * R * T / F;
+#define R 8.3144621
+#define T 310
+#define F 9.64583365e4
+const double RTF = 1000.0 * R * T / F;
 
 //************************************************************************
 //************************************************************************

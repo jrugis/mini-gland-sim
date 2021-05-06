@@ -12,6 +12,7 @@
 #include "utils.hpp"
 
 #include "cCell.hpp"
+#include "cCellStriated.hpp"
 #include "cDuctSegment.hpp"
 #include "cMiniGlandDuct.hpp"
 
