@@ -53,10 +53,4 @@ class cDuctSegmentIntercalated : public cDuctSegment {
   virtual void step();
 };
 
-class cDuctSegmentStriated : public cDuctSegment {
-  public:
-  cDuctSegmentStriated(cMiniGlandDuct* parent, int seg_number);
-  virtual void step();
-};
-
 #endif /* CDUCTSEGMENT_H_ */

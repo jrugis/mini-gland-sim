@@ -42,7 +42,8 @@ typedef Eigen::Vector4i Vector4i;
 // thermodynamic constants
 #define R 8.3144621
 #define T 310
-#define F 9.64583365e4
+#define F 96485.3365
+#define V_w 18e12
 const double RTF = 1000.0 * R * T / F;
 
 //************************************************************************

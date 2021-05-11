@@ -65,7 +65,7 @@ cDuctSegmentAcinus.o: $(SRC)/cDuctSegmentAcinus.cpp $(SRC)/cDuctSegment.hpp
 cDuctSegmentIntercalated.o: $(SRC)/cDuctSegmentIntercalated.cpp $(SRC)/cDuctSegment.hpp 
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
-cDuctSegmentStriated.o: $(SRC)/cDuctSegmentStriated.cpp $(SRC)/cDuctSegment.hpp 
+cDuctSegmentStriated.o: $(SRC)/cDuctSegmentStriated.cpp $(SRC)/cDuctSegmentStriated.hpp 
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 cCell.o: $(SRC)/cCell.cpp $(SRC)/cCell.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp

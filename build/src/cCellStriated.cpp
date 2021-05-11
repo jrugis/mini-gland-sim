@@ -16,15 +16,6 @@ cCellStriated::cCellStriated(cDuctSegment* parent, int cell_number) : cCell(pare
   out << "<CellStriated> @constructor" << std::endl;
 }
 
-void cCellStriated::step()
-{
-  // TO DO
-  // ...
-  std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-  out << "<CellStriated> step - threads in use: " << omp_get_num_threads() << std::endl;
-}
-
 void cCellStriated::init_const(){
   // initial cell volume
   //s.V0 = parent->element_data.col(VOL_e).sum();  

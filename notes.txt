@@ -32,7 +32,7 @@ make
 Run
 ---
 cd mini-gland-sim/run
-python run_sim_dev.py mini-gland.ply parms.dat
+python run_sim_dev.py mini-gland.ply my_parms_xxxx.dat
 
 
 Results
