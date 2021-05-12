@@ -4,6 +4,7 @@
 mini-gland-sim
 my*
 *.ply
+!mini-gland.ply
 
 #----------------------------------
 # Mac excludes
