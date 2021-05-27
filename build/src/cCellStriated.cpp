@@ -14,6 +14,50 @@
 cCellStriated::cCellStriated(cDuctSegment* parent, int cell_number) : cCell(parent, cell_number)
 {
   out << "<CellStriated> @constructor" << std::endl;
+
+  // calc areas of different regions
+  api_area = 0.0;
+  baslat_area = 0.0;
+  napical = 0;
+  for (int i = 0; i < nfaces; i++) {
+    if (face_types(i) == 0) {  // apical
+      api_area += face_areas(i);
+      napical++;
+    }
+    else {  // basal or basolateral
+      baslat_area += face_areas(i);
+    }
+  }
+  out << "<CellStriated> num apical triangles = " << napical << std::endl;
+  out << "<CellStriated> api_area = " << api_area << std::endl;
+  out << "<CellStriated> baslat_area = " << baslat_area << std::endl;
+}
+
+void cCellStriated::process_geom(std::vector<double>& lumen_segment) {
+  // mean z coordinate of each apical triangle vertex
+  MatrixN1d api_coord_z_mean;
+  api_coord_z_mean.resize(napical, Eigen::NoChange);
+  int api_count = 0;
+  for (int i = 0; i < nfaces; i++) {
+    if (face_types(i) == 0) {  // apical
+      double zsum = 0.0;
+      for (int j = 0; j < 3; j++) {  // for each vertex
+        int vertidx = faces(i, j);
+        zsum += verts(vertidx, 2);
+      }
+      api_coord_z_mean(api_count++) = zsum / 3.0;
+      out << "zmean: " << api_count - 1 << " = " << api_coord_z_mean(api_count-1) << std::endl;
+    }
+  }
+
+  // sort apical triangles into corresponding lumen segments
+
+
+  // find the unique lumen segments for this cell
+  
+
+  // loop through the lumen segments to calculate areas per segment
+
 }
 
 void cCellStriated::init_const(){

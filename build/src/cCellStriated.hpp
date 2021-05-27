@@ -8,7 +8,9 @@
 #ifndef CCELLSTRIATED_H_
 #define CCELLSTRIATED_H_
 
+#include <vector>
 #include "global_defs.hpp"
+#include "cCell.hpp"
 
 class cDuctSegment;
 
@@ -38,11 +40,14 @@ namespace S{
 class cCellStriated : public cCell {
   public:
   cCellStriated(cDuctSegment* parent, int cell_number);
+  void process_geom(std::vector<double>& lumen_segment);
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW   // required when using fixed-size vectorizable Eigen object(s)
 
   private:
   S::Array1IC solvec, prev_solvec;   // solution vectors for ions
   S::constant_values c;              // secretion constants vector
+  double api_area, baslat_area;      // surface areas for different regions
+  int napical;                       // number of apical triangles
   void init_solvec();
   void init_const();
 };
