@@ -48,6 +48,8 @@ class cCellStriated : public cCell {
   S::constant_values c;              // secretion constants vector
   double api_area, baslat_area;      // surface areas for different regions
   int napical;                       // number of apical triangles
+  MatrixN1d api_face_areas;
+  std::vector<double> api_face_area;
   void init_solvec();
   void init_const();
 };

@@ -67,9 +67,9 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* parent, int seg_numbe
 void cDuctSegmentStriated::get_cell_geom() {
   int ncells = cells.size();
   for (int i = 0; i < ncells; i++) {
+    // have to cast to cCellStriated to get methods defined only on that class
     static_cast<cCellStriated*>(cells[i])->process_geom(lumen_prop.segment);
   }
-
 }
 
 void cDuctSegmentStriated::get_lumen_geom(double L) {
