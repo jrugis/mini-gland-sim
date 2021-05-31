@@ -33,50 +33,30 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* parent, int seg_numbe
   Conc.Int(H) = 1000 * pow(10, -7.35);
   Conc.Int(CO) = 1.28;
 
-  Conc.PS(Na) = 143.5;  // concentration of primary saliva
+  Conc.PS(Na) = 143.5;  // concentration of primary saliva (TODO: this to come from the Acinus??)
   Conc.PS(K) = 5.2;
   Conc.PS(Cl) = 114.5;
   Conc.PS(HCO) = 34.2;
   Conc.PS(H) = 1000 * pow(10, -7.35);
   Conc.PS(CO) = 1.28;
 
-  Conc.CIC(Na) = 17;  // cellular initial concentration
-  Conc.CIC(K) = 140;
-  Conc.CIC(Cl) = 22;
-  Conc.CIC(HCO) = 75;
-  Conc.CIC(H) = 1000 * pow(10, -7.35);
-  Conc.CIC(CO) = 1.28;
-
-  Conc.LIC(Na) = 143.5;  // lumenal initial concentration
-  Conc.LIC(K) = 5.2;
-  Conc.LIC(Cl) = 114.5;
-  Conc.LIC(HCO) = 34.2;
-  Conc.LIC(H) = 1000 * pow(10, -7.35);
-  Conc.LIC(CO) = 1.28;
 
   // create parameters structure
   get_parameters();
 
   // mesh stuff (each cell has it's own mesh data, lumen segments here)
-  get_lumen_geom(L_int);
-  get_cell_geom();
+  process_mesh_info(L_int);
+
+  // setup initial conditions
+  setup_IC();
 
 
 }
 
-void cDuctSegmentStriated::get_cell_geom() {
-  int ncells = cells.size();
-  for (int i = 0; i < ncells; i++) {
-    // have to cast to cCellStriated to get methods defined only on that class
-    static_cast<cCellStriated*>(cells[i])->process_geom(lumen_prop.segment);
-  }
-}
-
-void cDuctSegmentStriated::get_lumen_geom(double L) {
+void cDuctSegmentStriated::process_mesh_info(double L) {
+  // processing lumen
   out << "<cDuctSegmentStriated> Lumen min/max in z: " << vertex_in(2) << " - " << vertex_out(2) << std::endl;
-
   lumen_prop.L = L;  // discretisation interval
-
   double lumen_start = std::min(vertex_out(2), vertex_in(2));
   double lumen_end = std::max(vertex_out(2), vertex_in(2));
   double lumen_length = lumen_end - lumen_start;
@@ -87,7 +67,6 @@ void cDuctSegmentStriated::get_lumen_geom(double L) {
   out << "<cDuctSegmentStriated> lumen start, end, length: " << lumen_start << ", " << lumen_end << ", " << lumen_length << std::endl;
   out << "                       lumen radius, volume: " << lumen_radius << ", " << lumen_prop.volume << std::endl;
   out << "                       n_int: " << lumen_prop.n_int << std::endl;
-
   lumen_prop.segment.resize(lumen_prop.n_int + 1);
   out << "                       segment:";
   for (int i = 0; i <= lumen_prop.n_int; i++) {
@@ -95,6 +74,13 @@ void cDuctSegmentStriated::get_lumen_geom(double L) {
     out << "  " << lumen_prop.segment[i];
   }
   out << std::endl;
+  
+  // process cells too
+  int ncells = cells.size();
+  for (int i = 0; i < ncells; i++) {
+    // have to cast to cCellStriated to get methods defined only on that class
+    static_cast<cCellStriated*>(cells[i])->process_mesh_info(lumen_prop.segment);
+  }
 }
 
 void cDuctSegmentStriated::get_parameters() {
@@ -163,6 +149,35 @@ void cDuctSegmentStriated::get_parameters() {
   P.chi_C = p.at("chi_C"); // mol (40 mM * 1000 um3  = xxx e-18 mol)
   P.phi_A = p.at("phi_A"); // mM (fong 2016)
   P.phi_B = p.at("phi_B"); // mM (Mangos 1972)
+}
+
+void cDuctSegmentStriated::setup_IC() {
+   xl.resize(Eigen::NoChange, lumen_prop.n_int);
+   dxldt.resize(Eigen::NoChange, lumen_prop.n_int);
+
+  for (int i = 0; i < lumen_prop.n_int; i++) {  // looping over lumen segments
+    // lumenal initial concentration
+    xl(Na_A, i) = 143.5;  // TODO: move these to parameter file
+    xl(K_A, i) = 5.2;
+    xl(Cl_A, i) = 114.5;
+    xl(HCO_A, i) = 34.2;
+    xl(H_A, i) = 1000 * pow(10, -7.35);
+    xl(CO_A, i) = 1.28;
+  }
+}
+
+void cDuctSegmentStriated::f_ODE() {
+  int n_c = cells.size();
+  int n_l = lumen_prop.n_int;
+
+  // constant parameters
+  double Na_B = P.ConI(Na);
+  double K_B = P.ConI(K);
+  double Cl_B = P.ConI(Cl);
+  double HCO_B = P.ConI(HCO);
+  double H_B = P.ConI(H);
+  double CO_B = P.ConI(CO);
+
 }
 
 void cDuctSegmentStriated::step()

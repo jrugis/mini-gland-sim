@@ -17,12 +17,11 @@ class cMiniGlandDuct;
 
 namespace dss {
   // solution values enums
-  enum cellular_values { V_A, V_B, w_C, Na_C, K_C, Cl_C, HCO_C, H_C, CO_C, CELLULARCOUNT };
   enum lumenal_values { Na_A, K_A, Cl_A, HCO_A, H_A, CO_A, LUMENALCOUNT };
   enum field_values { Na, K, Cl, HCO, H, CO, FIELDCOUNT };
-  typedef Eigen::Array<double, 1, CELLULARCOUNT> Array1CC;
   typedef Eigen::Array<double, 1, LUMENALCOUNT> Array1LC;
   typedef Eigen::Array<double, 1, FIELDCOUNT> Array1FC;
+  typedef Eigen::Array<double, FIELDCOUNT, Eigen::Dynamic> ArrayNFC;
 
   // parameters
   struct nbc_t {
@@ -134,13 +133,15 @@ class cDuctSegmentStriated : public cDuctSegment {
 
   private:
   void get_parameters();
-  void get_lumen_geom(double L);
-  void get_cell_geom();
+  void process_mesh_info(double L);
+  void setup_IC();
+  void f_ODE();
 
   double PSflow;  // um3/s volumetric primary saliva flow rate
   dss::conc_t Conc;
   dss::parameters_t P;
   dss::lumen_prop_t lumen_prop;
+  dss::ArrayNFC xl, dxldt;  // solution vector and derivative
 };
 
 #endif /* CDUCTSEGMENTSTRIATED_H_ */
