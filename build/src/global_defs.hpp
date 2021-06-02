@@ -8,6 +8,7 @@
 #ifndef DEFS_H_
 #define DEFS_H_
 
+#include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 //#include <cmath>
@@ -37,6 +38,8 @@ typedef Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> MatrixNNi;
 typedef Eigen::Vector3d Vector3d;
 typedef Eigen::Vector3i Vector3i;
 typedef Eigen::Vector4i Vector4i;
+
+typedef Eigen::Array<double, 1, Eigen::Dynamic> Array1Nd;
 
 //************************************************************************
 // thermodynamic constants

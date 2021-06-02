@@ -13,11 +13,13 @@
 #include "global_defs.hpp"
 #include "cDuctSegment.hpp"
 
+#define LUMENALCOUNT 6
+
 class cMiniGlandDuct;
 
 namespace dss {
   // solution values enums
-  enum lumenal_values { Na_A, K_A, Cl_A, HCO_A, H_A, CO_A, LUMENALCOUNT };
+//  enum lumenal_values { Na_A, K_A, Cl_A, HCO_A, H_A, CO_A, LUMENALCOUNT };
   enum field_values { Na, K, Cl, HCO, H, CO, FIELDCOUNT };
   typedef Eigen::Array<double, 1, LUMENALCOUNT> Array1LC;
   typedef Eigen::Array<double, 1, FIELDCOUNT> Array1FC;
@@ -131,7 +133,7 @@ class cDuctSegmentStriated : public cDuctSegment {
   virtual void step();
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW   // required when using fixed-size vectorizable Eigen object(s)
 
-  private:
+  protected:
   void get_parameters();
   void process_mesh_info(double L);
   void setup_IC();
@@ -141,7 +143,7 @@ class cDuctSegmentStriated : public cDuctSegment {
   dss::conc_t Conc;
   dss::parameters_t P;
   dss::lumen_prop_t lumen_prop;
-  dss::ArrayNFC xl, dxldt;  // solution vector and derivative
+  dss::ArrayNFC x_l, dxldt;  // solution vector and derivative
 };
 
 #endif /* CDUCTSEGMENTSTRIATED_H_ */

@@ -18,7 +18,7 @@
 
 using namespace dss;
 
-cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* parent, int seg_number) : cDuctSegment(parent, seg_number) {
+cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_number) : cDuctSegment(_parent, _seg_number) {
   out << "<DuctSegmentStriated> initialiser" << std::endl;
 
   // Model input setup (TODO: should these be read from parameter file? or from another class...)
@@ -50,7 +50,18 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* parent, int seg_numbe
   // setup initial conditions
   setup_IC();
 
+  // setup the cells too
+  int ncells = cells.size();
+  for (int i = 0; i < ncells; i++) {
+    // have to cast to cCellStriated to get methods defined only on that class
+    cCellStriated *cell_striated = static_cast<cCellStriated*>(cells[i]);
 
+    // initialise the cell
+    cell_striated->init(P);
+    
+    // process mesh info
+    cell_striated->process_mesh_info(lumen_prop.segment);
+  }
 }
 
 void cDuctSegmentStriated::process_mesh_info(double L) {
@@ -74,18 +85,9 @@ void cDuctSegmentStriated::process_mesh_info(double L) {
     out << "  " << lumen_prop.segment[i];
   }
   out << std::endl;
-  
-  // process cells too
-  int ncells = cells.size();
-  for (int i = 0; i < ncells; i++) {
-    // have to cast to cCellStriated to get methods defined only on that class
-    static_cast<cCellStriated*>(cells[i])->process_mesh_info(lumen_prop.segment);
-  }
 }
 
 void cDuctSegmentStriated::get_parameters() {
-  // TODO: should be read from parameter file?
-
   P.ConI = Conc.Int;
   P.ConP = Conc.PS;
 
@@ -152,17 +154,17 @@ void cDuctSegmentStriated::get_parameters() {
 }
 
 void cDuctSegmentStriated::setup_IC() {
-   xl.resize(Eigen::NoChange, lumen_prop.n_int);
+   x_l.resize(Eigen::NoChange, lumen_prop.n_int);
    dxldt.resize(Eigen::NoChange, lumen_prop.n_int);
 
   for (int i = 0; i < lumen_prop.n_int; i++) {  // looping over lumen segments
     // lumenal initial concentration
-    xl(Na_A, i) = 143.5;  // TODO: move these to parameter file
-    xl(K_A, i) = 5.2;
-    xl(Cl_A, i) = 114.5;
-    xl(HCO_A, i) = 34.2;
-    xl(H_A, i) = 1000 * pow(10, -7.35);
-    xl(CO_A, i) = 1.28;
+    x_l(Na, i) = 143.5;  // TODO: move these to parameter file
+    x_l(K, i) = 5.2;
+    x_l(Cl, i) = 114.5;
+    x_l(HCO, i) = 34.2;
+    x_l(H, i) = 1000 * pow(10, -7.35);
+    x_l(CO, i) = 1.28;
   }
 }
 
@@ -178,6 +180,52 @@ void cDuctSegmentStriated::f_ODE() {
   double H_B = P.ConI(H);
   double CO_B = P.ConI(CO);
 
+  double w_A = lumen_prop.volume;
+  double L = lumen_prop.L;
+  double A_L = lumen_prop.X_area;
+  double chi_C = P.chi_C; // mol
+  double phi_A = P.phi_A; // mol per lumen interval volume
+  double phi_B = P.phi_B; // mM
+
+  double alpha_NHE_A = P.NHE.alpha_A;
+  double alpha_NHE_B = P.NHE.alpha_B;
+  double k1_p = P.NHE.k1_p; // 1/s
+  double k1_m = P.NHE.k1_m; // 1/s
+  double k2_p = P.NHE.k2_p; // 1/s
+  double k2_m = P.NHE.k2_m; // 1/s
+
+  double alpha_AE2_A = P.AE2.alpha_A;
+  double alpha_AE2_B = P.AE2.alpha_B;
+  double k3_p = P.AE2.k3_p; // 1/s
+  double k3_m = P.AE2.k3_m; // 1/s
+  double k4_p = P.AE2.k4_p; // 1/s
+  double k4_m = P.AE2.k4_m; // 1/s
+
+  double alpha_NBC = P.NBC.alpha;
+  double k5_p = P.NBC.k5_p; // 1/s
+  double k5_m = P.NBC.k5_m; // 1/s
+  double k6_p = P.NBC.k6_p; // 1/s
+  double k6_m = P.NBC.k6_m; // 1/s
+
+  double r_NKA = P.NKA.r; // mM-3s-1
+  double beta_NKA = P.NKA.beta; // mM-1
+
+  double p_CO = P.p_CO; // 1/s 
+  double k_buf_p = P.buf.k_p; // /s
+  double k_buf_m = P.buf.k_m; // /mMs
+
+  // setup a vector to record the rate of change of lumen fluid flow
+  Array1Nd dwAdt(1, lumen_prop.n_int);
+  dwAdt.setZero();
+
+  // setup the ode rate of change matrices
+  dxldt.setZero();
+
+  // loop through the cells to populate the rate of change for each cell/variable
+  for (int i = 0; i < n_c; i++) {
+    static_cast<cCellStriated*>(cells[i])->f_ODE(x_l, lumen_prop, dwAdt);
+  }
+
 }
 
 void cDuctSegmentStriated::step()
@@ -186,5 +234,8 @@ void cDuctSegmentStriated::step()
   // ....
 
   out << "<DuctSegmentStriated> step - threads in use: " << omp_get_num_threads() << std::endl;
+
+  // Testing: call f_ODE once
+  f_ODE();
 }
 
