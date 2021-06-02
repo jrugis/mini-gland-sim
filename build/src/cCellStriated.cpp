@@ -157,7 +157,7 @@ void cCellStriated::setup_IC(){
   x_c(8) = 1.28;
 }
 
-void cCellStriated::f_ODE(const dss::ArrayNFC &x_l, const dss::lumen_prop_t &lumen_prop, Array1Nd &dwAdt) {
+void cCellStriated::f_ODE(const dss::ArrayNFC &x_l, const dss::lumen_prop_t &lumen_prop, dss::ArrayNFC &dxldt, Array1Nd &dwAdt) {
   // constant parameters
   double Na_B = P.ConI(dss::Na);
   double K_B = P.ConI(dss::K);
@@ -167,9 +167,9 @@ void cCellStriated::f_ODE(const dss::ArrayNFC &x_l, const dss::lumen_prop_t &lum
   double CO_B = P.ConI(dss::CO);
 
   double w_A = lumen_prop.volume;
-  double L = lumen_prop.L;
-  double A_L = lumen_prop.X_area;
-  double chi_C = P.chi_C; // mol
+//  double L = lumen_prop.L;
+//  double A_L = lumen_prop.X_area;
+//  double chi_C = P.chi_C; // mol
   double phi_A = P.phi_A; // mol per lumen interval volume
   double phi_B = P.phi_B; // mM
 
@@ -361,38 +361,48 @@ void cCellStriated::f_ODE(const dss::ArrayNFC &x_l, const dss::lumen_prop_t &lum
 
   // % V_A e-15 c/s
   // dxcdt(1,i) = -(sum(F*J_NKA_A*1e3 + I_ENaC + I_BK + I_CFTR + I_CFTR_B + I_P_Na + I_P_K + I_P_Cl));
+  dxcdt(0) = -(F*J_NKA_A*1e3 + I_ENaC + I_BK + I_CFTR + I_CFTR_B + I_P_Na + I_P_K + I_P_Cl).sum();
   // % V_B e-15 c/s
   // dxcdt(2,i) = -(F*J_NKA_B*1e3 + I_K_B - sum(I_P_Na + I_P_K + I_P_Cl));
+  dxcdt(1) = -(F*J_NKA_B*1e3 + I_K_B - (I_P_Na + I_P_K + I_P_Cl).sum());
   // % w_C um^3
   // dxcdt(3,i) = dwdt;
+  dxcdt(2) = dwdt;
   // % Na_C mM/s
   // dxcdt(4,i) = -dwdt*Na_C/w_C + 1e3*(-sum(I_ENaC)./(F*w_C)) - 1e6*(3*(J_NKA_B+sum(J_NKA_A))/w_C) + J_NBC/w_C + sum(J_NHE_A)/w_C + J_NHE_B/w_C;
+  dxcdt(3) = -dwdt*Na_C/w_C + 1e3*(-I_ENaC.sum()/(F*w_C)) - 1e6*(3*(J_NKA_B+J_NKA_A.sum())/w_C) + J_NBC/w_C + J_NHE_A.sum()/w_C + J_NHE_B/w_C;
   // % K_C mM/s
   // dxcdt(5,i) = -dwdt*K_C/w_C + 1e3*(-sum(I_BK)./(F*w_C) - I_K_B./(F*w_C)) + 1e6*(2*(J_NKA_B+sum(J_NKA_A))/w_C);
+  dxcdt(4) = -dwdt*K_C/w_C + 1e3*(-I_BK.sum()/(F*w_C) - I_K_B/(F*w_C)) + 1e6*(2*(J_NKA_B+J_NKA_A.sum())/w_C);
   // % Cl_C mM/s
   // dxcdt(6,i) = -dwdt*Cl_C/w_C + 1e3*(sum(I_CFTR)./(F*w_C)) + sum(J_AE2_A)/w_C + J_AE2_B/w_C;
+  dxcdt(5) = -dwdt*Cl_C/w_C + 1e3*(I_CFTR.sum()/(F*w_C)) + J_AE2_A.sum()/w_C + J_AE2_B/w_C;
   // % HCO_C mM/s
   // dxcdt(7,i) = -dwdt*HCO_C/w_C + 1e3*(sum(I_CFTR_B)./(F*w_C)) + J_NBC/w_C - sum(J_AE2_A)/w_C - J_AE2_B/w_C + J_buf_C/w_C;
+  dxcdt(6) = -dwdt*HCO_C/w_C + 1e3*(I_CFTR_B.sum()/(F*w_C)) + J_NBC/w_C - J_AE2_A.sum()/w_C - J_AE2_B/w_C + J_buf_C/w_C;
   // % H_C mM/s
   // dxcdt(8,i) = -dwdt*H_C/w_C - sum(J_NHE_A)/w_C - J_NHE_B/w_C + J_buf_C/w_C;
+  dxcdt(7) = -dwdt*H_C/w_C - J_NHE_A.sum()/w_C - J_NHE_B/w_C + J_buf_C/w_C;
   // % CO_C mM/s
   // dxcdt(9,i) = -dwdt*CO_C/w_C - sum(J_CDF_A)/w_C - J_CDF_B/w_C - J_buf_C/w_C;
-  // 
+  dxcdt(8) = -dwdt*CO_C/w_C - J_CDF_A.sum()/w_C - J_CDF_B/w_C - J_buf_C/w_C;
+
   // % Na_A mM/s
   // dxldt(1,loc_int) = dxldt(1,loc_int) + 1e6*(3*J_NKA_A./w_A) + 1e3*(I_ENaC./(F*w_A)) + 1e3*(I_P_Na./(F*w_A)) - J_NHE_A./w_A;
+  dxldt(0,loc_int) += 1e6*(3*J_NKA_A/w_A) + 1e3*(I_ENaC/(F*w_A)) + 1e3*(I_P_Na/(F*w_A)) - J_NHE_A/w_A;
   // % K_A mM/s
   // dxldt(2,loc_int) = dxldt(2,loc_int) - 1e6*(2*J_NKA_A./w_A) + 1e3*(I_BK./(F*w_A)) + 1e3*(I_P_K./(F*w_A));
+  dxldt(1,loc_int) += - 1e6*(2*J_NKA_A/w_A) + 1e3*(I_BK/(F*w_A)) + 1e3*(I_P_K/(F*w_A));
   // % Cl_A mM/s
   // dxldt(3,loc_int) = dxldt(3,loc_int) + 1e3*(-I_CFTR./(F*w_A)) + 1e3*(-I_P_Cl./(F*w_A)) - J_AE2_A./w_A;
+  dxldt(2,loc_int) += 1e3*(-I_CFTR/(F*w_A)) + 1e3*(-I_P_Cl/(F*w_A)) - J_AE2_A/w_A;
   // % HCO_A mM/s
   // dxldt(4,loc_int) = dxldt(4,loc_int) + 1e3*(-I_CFTR_B./(F*w_A)) + J_AE2_A./w_A + J_buf_A;
+  dxldt(3,loc_int) += 1e3*(-I_CFTR_B/(F*w_A)) + J_AE2_A/w_A + J_buf_A;
   // % H_A mM/s
   // dxldt(5,loc_int) = dxldt(5,loc_int) + J_NHE_A./w_A + J_buf_A;
+  dxldt(4,loc_int) += J_NHE_A/w_A + J_buf_A;
   // % CO_A mM/s
   // dxldt(6,loc_int) = dxldt(6,loc_int) + J_CDF_A./w_A - J_buf_A;
-
-
-
-
-
+  dxldt(5,loc_int) += J_CDF_A/w_A - J_buf_A;
 }

@@ -57,14 +57,14 @@ namespace S{
 class cCellStriated : public cCell {
   public:
   cCellStriated(cDuctSegment* parent, int cell_number);
+  S::Array1CC x_c, dxcdt;   // solution vectors for ions
   void process_mesh_info(std::vector<double>& lumen_segment);
-  void f_ODE(const dss::ArrayNFC &xl, const dss::lumen_prop_t &lumen_prop, Array1Nd &dwAdt);
+  void f_ODE(const dss::ArrayNFC &xl, const dss::lumen_prop_t &lumen_prop, dss::ArrayNFC &dxldt, Array1Nd &dwAdt);
   void init(dss::parameters_t &parent_P);
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW   // required when using fixed-size vectorizable Eigen object(s)
 
   private:
   dss::parameters_t P;
-  S::Array1CC x_c, dxcdt;   // solution vectors for ions
   double api_area, baslat_area;      // surface areas for different regions
   int napical;                       // number of apical triangles
   std::vector<int> api_lumen_conn;
