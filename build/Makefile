@@ -37,7 +37,7 @@ CPP_FLAGS =  $(CPP_DEFS) -m64 -O3 -march=native -mtune=native -Wall -Wpedantic -
 #CPP_LIBS = -lsundials_cvodes
 #CPP_LIBS = -l/usr/local/Cellar/boost/1.75.0_2/lib  # iMac
 #CPP_LIBS = -lboost_system
-CPP_LIBS = -lstdc++
+CPP_LIBS = -lstdc++ -lm
 
 ###########################################################################################
 
