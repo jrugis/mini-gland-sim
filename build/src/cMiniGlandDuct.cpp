@@ -67,7 +67,7 @@ void cMiniGlandDuct::run()
   while ((p.at("totalT") - t) > 0.000001) { // HARD CODED: assumes solver_dt always > 1us
 
 #pragma omp parallel for
-	for (auto seg : segments) { seg->step(); }
+	for (auto seg : segments) { seg->step(t, solver_dt); }
 
     // combine duct segment fluid flow  --  TO DO
     // ....

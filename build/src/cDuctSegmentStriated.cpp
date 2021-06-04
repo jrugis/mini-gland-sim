@@ -22,6 +22,33 @@
 
 using namespace dss;
 
+// the function that will be called by the SUNDIALS solver
+static int ode_func(realtype t, N_Vector y, N_Vector ydot, void* user_data)
+{
+  // pointer to DuctSegmentStriated object
+  cDuctSegmentStriated* pt_dss = static_cast<cDuctSegmentStriated*>(user_data);
+
+  // create input and output arrays for calling cell flow function
+  int nvars = pt_dss->get_nvars();
+  Array1Nd ymat(1, nvars);
+  Array1Nd ydotmat(1, nvars);
+
+  // copy input from sundials data structure to array for calling secretion function
+  for (int i = 0; i < nvars; i++) { 
+    ymat(i) = NV_Ith_S(y, i);
+  }
+
+  // call secretion function
+  pt_dss->f_ODE(ymat, ydotmat);
+
+  // copy result back into sundials data structure
+  for (int i = 0; i < nvars; i++) {
+    NV_Ith_S(ydot, i) = ydotmat(i);
+  }
+
+  return (0);
+}
+
 cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_number) : cDuctSegment(_parent, _seg_number) {
   out << "<DuctSegmentStriated> initialiser" << std::endl;
 
@@ -70,9 +97,11 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   // allocate solver vectors
   x.resize(1, LUMENALCOUNT*lumen_prop.n_int + CELLULARCOUNT*cells.size());
   dxdt.resize(1, LUMENALCOUNT*lumen_prop.n_int + CELLULARCOUNT*cells.size());
+  gather_x(x);
 
   // setting up the solver
   solver = new cCVode(out, p.at("odeSolverAbsTol"), p.at("odeSolverRelTol"));
+  solver->init(ode_func, x, static_cast<void*>(this));
 }
 
 cDuctSegmentStriated::~cDuctSegmentStriated() {
@@ -298,44 +327,23 @@ int cDuctSegmentStriated::get_nvars() {
   return nvars;
 }
 
-// the function that will be called by the SUNDIALS solver
-static int ode_func(realtype t, N_Vector y, N_Vector ydot, void* user_data)
-{
-  // pointer to DuctSegmentStriated object
-  cDuctSegmentStriated* pt_dss = static_cast<cDuctSegmentStriated*>(user_data);
-
-  // create input and output arrays for calling cell flow function
-  int nvars = pt_dss->get_nvars();
-  Array1Nd ymat(1, nvars);
-  Array1Nd ydotmat(1, nvars);
-
-  // copy input from sundials data structure to array for calling secretion function
-  for (int i = 0; i < nvars; i++) { 
-    ymat(i) = NV_Ith_S(y, i);
-  }
-
-  // call secretion function
-  pt_dss->f_ODE(ymat, ydotmat);
-
-  // copy result back into sundials data structure
-  for (int i = 0; i < nvars; i++) {
-    NV_Ith_S(ydot, i) = ydotmat(i);
-  }
-
-  return (0);
-}
-
-void cDuctSegmentStriated::step()
-{
+void cDuctSegmentStriated::step(double current_time, double timestep) {
   // combine cells fluid flow  --  TO DO
   // ....
 
   out << "<DuctSegmentStriated> step - threads in use: " << omp_get_num_threads() << std::endl;
 
   // Testing: call f_ODE once
-  Array1Nd testx(1, cells.size()*CELLULARCOUNT+lumen_prop.n_int*LUMENALCOUNT);
-  Array1Nd testxdot(1, cells.size()*CELLULARCOUNT+lumen_prop.n_int*LUMENALCOUNT);
+  Array1Nd testx(1, get_nvars());
+  Array1Nd testxdot(1, get_nvars());
   gather_x(testx);
   f_ODE(testx, testxdot);
+  // End testing
+
+  // call the solver
+//  gather_x(x);
+//  solver->run(current_time, timestep, x);
+//  solver->PrintFinalStatsBrief();
+
 }
 

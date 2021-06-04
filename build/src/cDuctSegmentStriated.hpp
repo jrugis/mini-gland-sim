@@ -132,7 +132,7 @@ class cDuctSegmentStriated : public cDuctSegment {
   public:
   cDuctSegmentStriated(cMiniGlandDuct* parent, int seg_number);
   ~cDuctSegmentStriated();
-  virtual void step();
+  virtual void step(double t, double dt);
   void f_ODE(const Array1Nd &x_in, Array1Nd &dxdt);
   int get_nvars();
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW   // required when using fixed-size vectorizable Eigen object(s)
