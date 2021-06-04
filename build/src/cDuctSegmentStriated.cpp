@@ -11,11 +11,14 @@
 #include <algorithm>
 #include <numeric>
 #include <omp.h>
+#include <nvector/nvector_serial.h>    /* access to serial N_Vector            */
+#include <sundials/sundials_types.h>   /* defs. of realtype, sunindextype      */
 
 #include "cCell.hpp"
 #include "cDuctSegment.hpp"
 #include "cDuctSegmentStriated.hpp"
 #include "cCellStriated.hpp"
+#include "cCVode.hpp"
 
 using namespace dss;
 
@@ -63,6 +66,17 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
     // process mesh info
     cell_striated->process_mesh_info(lumen_prop.segment);
   }
+
+  // allocate solver vectors
+  x.resize(1, LUMENALCOUNT*lumen_prop.n_int + CELLULARCOUNT*cells.size());
+  dxdt.resize(1, LUMENALCOUNT*lumen_prop.n_int + CELLULARCOUNT*cells.size());
+
+  // setting up the solver
+  solver = new cCVode(out, p.at("odeSolverAbsTol"), p.at("odeSolverRelTol"));
+}
+
+cDuctSegmentStriated::~cDuctSegmentStriated() {
+  delete solver;
 }
 
 void cDuctSegmentStriated::process_mesh_info(double L) {
@@ -169,7 +183,37 @@ void cDuctSegmentStriated::setup_IC() {
   }
 }
 
-void cDuctSegmentStriated::f_ODE() {
+void cDuctSegmentStriated::distribute_x(const Array1Nd &x_in) {
+  int n_c = cells.size();
+  int n_l = lumen_prop.n_int;
+  for (int i = 0; i < n_c; i++) {
+    cCellStriated *cell_striated = static_cast<cCellStriated*>(cells[i]);
+    cell_striated->x_c = x_in(Eigen::seq(i*CELLULARCOUNT, (i+1)*CELLULARCOUNT-1));
+  }
+  int s_l = CELLULARCOUNT * n_c;
+  for (int i = 0; i < n_l; i++) {
+    x_l.col(i) = x_in(Eigen::seq(s_l+i*LUMENALCOUNT, s_l+(i+1)*LUMENALCOUNT-1));
+  }
+}
+
+void cDuctSegmentStriated::gather_x(Array1Nd &x_out) {
+  int n_c = cells.size();
+  int n_l = lumen_prop.n_int;
+  for (int i = 0; i < n_c; i++) {
+    cCellStriated *cell_striated = static_cast<cCellStriated*>(cells[i]);
+    x_out(0, Eigen::seq(i*CELLULARCOUNT, (i+1)*CELLULARCOUNT-1)) = cell_striated->x_c.row(0);
+  }
+  int s_l = CELLULARCOUNT * n_c;
+  for (int i = 0; i < n_l; i++) {
+    x_out(0, Eigen::seq(s_l+i*LUMENALCOUNT, s_l+(i+1)*LUMENALCOUNT-1)) = x_l.col(i);
+  }
+
+}
+
+void cDuctSegmentStriated::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
+  // populate x_l and x_c from x_in
+  distribute_x(x_in);
+
   int n_c = cells.size();
   int n_l = lumen_prop.n_int;
 
@@ -237,7 +281,6 @@ void cDuctSegmentStriated::f_ODE() {
 
   // % flatten the matrix to a column vector
   // dxdt = [dxcdt(:); dxldt(:)];
-  Array1Nd dxdt(1, LUMENALCOUNT*n_l + CELLULARCOUNT*n_c);
   for (int i = 0; i < n_c; i++) {
     cCellStriated *cell_striated = static_cast<cCellStriated*>(cells[i]);
     dxdt(0, Eigen::seq(i*CELLULARCOUNT, (i+1)*CELLULARCOUNT-1)) = cell_striated->dxcdt.row(0);
@@ -246,9 +289,40 @@ void cDuctSegmentStriated::f_ODE() {
   for (int i = 0; i < n_l; i++) {
     dxdt(0, Eigen::seq(s_l+i*LUMENALCOUNT, s_l+(i+1)*LUMENALCOUNT-1)) = dxldt.col(i);
   }
+}
 
+int cDuctSegmentStriated::get_nvars() {
+  int n_c = cells.size();
+  int n_l = lumen_prop.n_int;
+  int nvars = n_c * CELLULARCOUNT + n_l * LUMENALCOUNT;
+  return nvars;
+}
 
+// the function that will be called by the SUNDIALS solver
+static int ode_func(realtype t, N_Vector y, N_Vector ydot, void* user_data)
+{
+  // pointer to DuctSegmentStriated object
+  cDuctSegmentStriated* pt_dss = static_cast<cDuctSegmentStriated*>(user_data);
 
+  // create input and output arrays for calling cell flow function
+  int nvars = pt_dss->get_nvars();
+  Array1Nd ymat(1, nvars);
+  Array1Nd ydotmat(1, nvars);
+
+  // copy input from sundials data structure to array for calling secretion function
+  for (int i = 0; i < nvars; i++) { 
+    ymat(i) = NV_Ith_S(y, i);
+  }
+
+  // call secretion function
+  pt_dss->f_ODE(ymat, ydotmat);
+
+  // copy result back into sundials data structure
+  for (int i = 0; i < nvars; i++) {
+    NV_Ith_S(ydot, i) = ydotmat(i);
+  }
+
+  return (0);
 }
 
 void cDuctSegmentStriated::step()
@@ -259,6 +333,9 @@ void cDuctSegmentStriated::step()
   out << "<DuctSegmentStriated> step - threads in use: " << omp_get_num_threads() << std::endl;
 
   // Testing: call f_ODE once
-  f_ODE();
+  Array1Nd testx(1, cells.size()*CELLULARCOUNT+lumen_prop.n_int*LUMENALCOUNT);
+  Array1Nd testxdot(1, cells.size()*CELLULARCOUNT+lumen_prop.n_int*LUMENALCOUNT);
+  gather_x(testx);
+  f_ODE(testx, testxdot);
 }
 

@@ -45,9 +45,9 @@ typedef Eigen::Array<double, 1, Eigen::Dynamic> Array1Nd;
 // thermodynamic constants
 #define R 8.13144621
 #define T 310
-#define F 96485.3329
+#define F_const 96485.3329
 #define V_w 18e12
-const double RTF = 1000.0 * R * T / F;
+const double RTF = 1000.0 * R * T / F_const;
 
 //************************************************************************
 //************************************************************************

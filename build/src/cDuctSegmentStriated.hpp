@@ -12,6 +12,7 @@
 
 #include "global_defs.hpp"
 #include "cDuctSegment.hpp"
+#include "cCVode.hpp"
 
 #define LUMENALCOUNT 6
 
@@ -130,20 +131,26 @@ namespace dss {
 class cDuctSegmentStriated : public cDuctSegment {
   public:
   cDuctSegmentStriated(cMiniGlandDuct* parent, int seg_number);
+  ~cDuctSegmentStriated();
   virtual void step();
+  void f_ODE(const Array1Nd &x_in, Array1Nd &dxdt);
+  int get_nvars();
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW   // required when using fixed-size vectorizable Eigen object(s)
 
   protected:
   void get_parameters();
   void process_mesh_info(double L);
   void setup_IC();
-  void f_ODE();
+  void distribute_x(const Array1Nd &x_in);
+  void gather_x(Array1Nd &x_out);
 
   double PSflow;  // um3/s volumetric primary saliva flow rate
   dss::conc_t Conc;
   dss::parameters_t P;
   dss::lumen_prop_t lumen_prop;
   dss::ArrayNFC x_l, dxldt;  // solution vector and derivative
+  Array1Nd x, dxdt;
+  cCVode *solver;
 };
 
 #endif /* CDUCTSEGMENTSTRIATED_H_ */

@@ -16,6 +16,12 @@ delT    0.01   # simulation time step(sec)
 totalT  0.1    # total simulation time(sec)
 Tstride 1      # results storage stride
 #
+#
+#-----------------
+#-----------------
+odeSolverAbsTol 1e-6   # Solver tolerance absolute
+odeSolverRelTol 1e-3   #    "        "    relative
+#
 ##############################################################
 # CALCIUM DYNAMICS PARAMETERS
 ##############################################################
