@@ -10,6 +10,8 @@
 #include <unordered_set>
 #include <algorithm>
 #include <cmath>
+#include <iomanip>
+#include <limits>
 
 #include "cCell.hpp"
 #include "cCellStriated.hpp"
@@ -20,6 +22,18 @@ using namespace dss;
 cCellStriated::cCellStriated(cDuctSegment* parent, int cell_number) : cCell(parent, cell_number)
 {
   out << "<CellStriated> @constructor" << std::endl;
+  out << std::fixed << std::setprecision(15);
+
+  // min/max z coordinate
+  min_z = std::numeric_limits<double>::max();
+  max_z = std::numeric_limits<double>::lowest();
+  for (int n = 0; n < nfaces; n++) {
+    for (int i = 0; i < 3; i++) {
+      double zcoord = verts.row(faces(n, i))(2);
+      min_z = std::min(min_z, zcoord);
+      max_z = std::max(max_z, zcoord);
+    }
+  }
 }
 
 void cCellStriated::init(dss::parameters_t &parent_P) {
@@ -91,7 +105,7 @@ void cCellStriated::process_mesh_info(std::vector<double>& lumen_segment) {
   double A_A = api_area;
   double A_B = baslat_area;
   scaled_rates.L_A = P.L_A * A / A_A;
-  scaled_rates.L_A = P.L_B * A / A_B;
+  scaled_rates.L_B = P.L_B * A / A_B;
   scaled_rates.G_ENaC = P.G_ENaC * A / A_A;
   scaled_rates.G_CFTR = P.G_CFTR * A / A_A;
   scaled_rates.G_BK   = P.G_BK * A / A_A;
@@ -219,6 +233,8 @@ void cCellStriated::f_ODE(const dss::ArrayNFC &x_l, const dss::lumen_prop_t &lum
 
   double L_B = scaled_rates.L_B; // um/s 
   double L_A = scaled_rates.L_A; // um/s 
+  out << "L_A = " << L_A << std::endl;
+  out << "L_B = " << L_B << std::endl;
 
   // cellular variables
   double V_A = x_c(0);
@@ -253,12 +269,17 @@ void cCellStriated::f_ODE(const dss::ArrayNFC &x_l, const dss::lumen_prop_t &lum
   // J_A = 1e-18*L_A.*V_w.*(Na_A + K_A + Cl_A + HCO_A + phi_A - Na_C - K_C - Cl_C - HCO_C - osm_c); % um/s [1, n_loc_int]
   // dwdt = A_B * J_B - sum(A_A_int .* J_A); % um^3/s
   // dwAdt(1,loc_int) = dwAdt(1,loc_int) + A_A_int .* J_A; % um^3/s [1, n_loc_int]
-  double osm_c = P.chi_C / w_C;
-  double J_B = 1e-18 * L_B * V_w * (Na_C + K_C + Cl_C + HCO_C + osm_c - Na_B - K_B - Cl_B - HCO_B - phi_B);
+  double osm_c = P.chi_C / w_C * 1e18;
+  double J_B = 1e-18*L_B*V_w*(Na_C + K_C + Cl_C + HCO_C + osm_c - Na_B - K_B - Cl_B - HCO_B - phi_B);
   Array1Nd J_A(1, n_loc_int);
-  J_A = 1e-18 * L_A * V_w * (Na_A + K_A + Cl_A + HCO_A + phi_A - Na_C - K_C - Cl_C - HCO_C - osm_c);
-  double dwdt = A_B * J_B * (api_area_int * J_A).sum();
+  J_A = 1e-18*L_A*V_w*(Na_A + K_A + Cl_A + HCO_A + phi_A - Na_C - K_C - Cl_C - HCO_C - osm_c);
+  double dwdt = A_B * J_B - (api_area_int * J_A).sum();
   dwAdt(0, loc_int) += api_area_int * J_A;
+  out << "osm_c: " << osm_c << std::endl;
+  out << "J_A: " << J_A << std::endl;
+  out << "J_B: " << J_B << std::endl;
+  out << "dwdt: " << dwdt << std::endl;
+  out << "dwAdt: " << dwAdt << std::endl;
 
   // % CDF C02 Diffusion 
   // J_CDF_A = p_CO * (CO_C - CO_A).* w_C .* A_A_int./A_A; % e-18 mol/s [1, n_loc_int]

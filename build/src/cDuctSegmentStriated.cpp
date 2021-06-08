@@ -8,7 +8,10 @@
 //#include <thread>
 #include <cmath>
 #include <iostream>
+#include <fstream>
+#include <iomanip>
 #include <algorithm>
+#include <limits>
 #include <numeric>
 #include <omp.h>
 #include <nvector/nvector_serial.h>    /* access to serial N_Vector            */
@@ -109,11 +112,22 @@ cDuctSegmentStriated::~cDuctSegmentStriated() {
 }
 
 void cDuctSegmentStriated::process_mesh_info(double L) {
-  // processing lumen
-  out << "<cDuctSegmentStriated> Lumen min/max in z: " << vertex_in(2) << " - " << vertex_out(2) << std::endl;
+  out << "cDuctSegmentStriated> process mesh info..." << std::endl;
   lumen_prop.L = L;  // discretisation interval
-  double lumen_start = std::min(vertex_out(2), vertex_in(2));
-  double lumen_end = std::max(vertex_out(2), vertex_in(2));
+  // min/max z coord (was read from mesh, changed to match matlab)
+//  double lumen_start = std::min(vertex_out(2), vertex_in(2));
+//  double lumen_end = std::max(vertex_out(2), vertex_in(2));
+  double lumen_start = std::numeric_limits<double>::max();
+  double lumen_end = std::numeric_limits<double>::lowest();
+  int ncells = cells.size();
+  for (int i = 0; i < ncells; i++) {
+    // have to cast to cCellStriated to get methods defined only on that class
+    cCellStriated *cell_striated = static_cast<cCellStriated*>(cells[i]);
+    double cellminz = cell_striated->get_min_z();
+    double cellmaxz = cell_striated->get_max_z();
+    lumen_start = std::min(cellminz, lumen_start);
+    lumen_end = std::max(cellmaxz, lumen_end);
+  }
   double lumen_length = lumen_end - lumen_start;
   lumen_prop.n_int = ceil(lumen_length / L);
   double lumen_radius = inner_diameter / 2.0;
@@ -338,6 +352,14 @@ void cDuctSegmentStriated::step(double current_time, double timestep) {
   Array1Nd testxdot(1, get_nvars());
   gather_x(testx);
   f_ODE(testx, testxdot);
+  std::ofstream xfile("xdump.txt");
+  xfile << std::fixed << std::setprecision(15);
+  xfile << testx.transpose();
+  xfile.close();
+  std::ofstream xdotfile("xdotdump.txt");
+  xdotfile << std::fixed << std::setprecision(15);
+  xdotfile << testxdot.transpose();
+  xdotfile.close();
   // End testing
 
   // call the solver

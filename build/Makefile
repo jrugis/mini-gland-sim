@@ -27,6 +27,7 @@ CPP = gcc
 
 ## optimised
 CPP_FLAGS =  $(CPP_DEFS) -m64 -O3 -march=native -mtune=native -Wall -Wpedantic -g
+#CPP_FLAGS =  $(CPP_DEFS) -m64 -O0 -Wall -Wpedantic -g
 #CPP_FLAGS =  $(CPP_DEFS) -m64 -Og -Wextra -march=native -mtune=native -Wall -Wpedantic -g
 
 ###########################################################################################
