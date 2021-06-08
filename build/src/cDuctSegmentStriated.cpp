@@ -286,10 +286,6 @@ void cDuctSegmentStriated::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
 
   // accumulate the fluid as secreted from cells along the lumen
   std::partial_sum(dwAdt.begin(), dwAdt.end(), v.begin());
-  out << "dwAdt:" << std::endl;
-  out << dwAdt << std::endl;
-  out << "v:" << std::endl;
-  out << v << std::endl;
 
   // construct a matrix to represent the upstream variable value for each lumen segment
   ArrayNFC x_up;
@@ -348,24 +344,24 @@ void cDuctSegmentStriated::step(double current_time, double timestep) {
   out << "<DuctSegmentStriated> step - threads in use: " << omp_get_num_threads() << std::endl;
 
   // Testing: call f_ODE once
-  Array1Nd testx(1, get_nvars());
-  Array1Nd testxdot(1, get_nvars());
-  gather_x(testx);
-  f_ODE(testx, testxdot);
-  std::ofstream xfile("xdump.txt");
-  xfile << std::fixed << std::setprecision(15);
-  xfile << testx.transpose();
-  xfile.close();
-  std::ofstream xdotfile("xdotdump.txt");
-  xdotfile << std::fixed << std::setprecision(15);
-  xdotfile << testxdot.transpose();
-  xdotfile.close();
+//  Array1Nd testx(1, get_nvars());
+//  Array1Nd testxdot(1, get_nvars());
+//  gather_x(testx);
+//  f_ODE(testx, testxdot);
+//  std::ofstream xfile("xdump.txt");
+//  xfile << std::fixed << std::setprecision(15);
+//  xfile << testx.transpose();
+//  xfile.close();
+//  std::ofstream xdotfile("xdotdump.txt");
+//  xdotfile << std::fixed << std::setprecision(15);
+//  xdotfile << testxdot.transpose();
+//  xdotfile.close();
   // End testing
 
   // call the solver
-//  gather_x(x);
-//  solver->run(current_time, timestep, x);
-//  solver->PrintFinalStatsBrief();
+  gather_x(x);
+  solver->run(current_time, timestep, x);
+  solver->PrintFinalStatsBrief();
 
 }
 

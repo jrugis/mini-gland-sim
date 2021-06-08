@@ -22,7 +22,6 @@ using namespace dss;
 cCellStriated::cCellStriated(cDuctSegment* parent, int cell_number) : cCell(parent, cell_number)
 {
   out << "<CellStriated> @constructor" << std::endl;
-  out << std::fixed << std::setprecision(15);
 
   // min/max z coordinate
   min_z = std::numeric_limits<double>::max();
@@ -233,8 +232,6 @@ void cCellStriated::f_ODE(const dss::ArrayNFC &x_l, const dss::lumen_prop_t &lum
 
   double L_B = scaled_rates.L_B; // um/s 
   double L_A = scaled_rates.L_A; // um/s 
-  out << "L_A = " << L_A << std::endl;
-  out << "L_B = " << L_B << std::endl;
 
   // cellular variables
   double V_A = x_c(0);
@@ -275,11 +272,6 @@ void cCellStriated::f_ODE(const dss::ArrayNFC &x_l, const dss::lumen_prop_t &lum
   J_A = 1e-18*L_A*V_w*(Na_A + K_A + Cl_A + HCO_A + phi_A - Na_C - K_C - Cl_C - HCO_C - osm_c);
   double dwdt = A_B * J_B - (api_area_int * J_A).sum();
   dwAdt(0, loc_int) += api_area_int * J_A;
-  out << "osm_c: " << osm_c << std::endl;
-  out << "J_A: " << J_A << std::endl;
-  out << "J_B: " << J_B << std::endl;
-  out << "dwdt: " << dwdt << std::endl;
-  out << "dwAdt: " << dwAdt << std::endl;
 
   // % CDF C02 Diffusion 
   // J_CDF_A = p_CO * (CO_C - CO_A).* w_C .* A_A_int./A_A; % e-18 mol/s [1, n_loc_int]
