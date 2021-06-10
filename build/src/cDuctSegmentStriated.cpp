@@ -52,10 +52,13 @@ static int ode_func(realtype t, N_Vector y, N_Vector ydot, void* user_data)
   return (0);
 }
 
-cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_number) : cDuctSegment(_parent, _seg_number) {
+cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_number) : cDuctSegment(_parent, _seg_number), stepnum(0) {
   out << "<DuctSegmentStriated> initialiser" << std::endl;
 
   // Model input setup (TODO: should these be read from parameter file? or from another class...)
+
+  // open the results file
+  results_file.open(id + "_results.bin", std::ios::binary);
 
   double L_int = 1;  // um length of lumen discretisation interval
   PSflow = 100 / 10;  // um3/s volumetric primary saliva flow rate
@@ -85,6 +88,8 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   setup_IC();
 
   // setup the cells too
+  std::ofstream centroid_file(id + "_zcentroid.dat");
+  centroid_file << std::scientific << std::setprecision(16);
   int ncells = cells.size();
   for (int i = 0; i < ncells; i++) {
     // have to cast to cCellStriated to get methods defined only on that class
@@ -95,7 +100,11 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
     
     // process mesh info
     cell_striated->process_mesh_info(lumen_prop.segment);
+
+    // store centroid z coordinate for postprocessing
+    centroid_file << cell_striated->get_mean_z() << std::endl;
   }
+  centroid_file.close();
 
   // allocate solver vectors
   x.resize(1, LUMENALCOUNT*lumen_prop.n_int + CELLULARCOUNT*cells.size());
@@ -314,7 +323,6 @@ void cDuctSegmentStriated::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
   //   dxldt(i,:) = dxldt(i,:) + (v_up.*x_up(i,:) - v.*x_l(i,:))./L;
   // end
   for (int i = 0; i < LUMENALCOUNT; i++) {
-    //dxldt(i, Eigen::all) += (v_up * x_up(i, Eigen::all) - v * x_l(i, Eigen::all)) / L;
     dxldt.row(i) += (v_up * x_up.row(i) - v * x_l.row(i)) / L;
   }
 
@@ -322,11 +330,13 @@ void cDuctSegmentStriated::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
   // dxdt = [dxcdt(:); dxldt(:)];
   for (int i = 0; i < n_c; i++) {
     cCellStriated *cell_striated = static_cast<cCellStriated*>(cells[i]);
-    dxdt(0, Eigen::seq(i*CELLULARCOUNT, (i+1)*CELLULARCOUNT-1)) = cell_striated->dxcdt.row(0);
+    int idx = i * CELLULARCOUNT;
+    dxdt(0, Eigen::seq(idx, idx+CELLULARCOUNT-1)) = cell_striated->dxcdt.row(0);
   }
   int s_l = CELLULARCOUNT * n_c;
   for (int i = 0; i < n_l; i++) {
-    dxdt(0, Eigen::seq(s_l+i*LUMENALCOUNT, s_l+(i+1)*LUMENALCOUNT-1)) = dxldt.col(i);
+    int idx = s_l + i * LUMENALCOUNT;
+    dxdt(0, Eigen::seq(idx, idx+LUMENALCOUNT-1)) = dxldt.col(i);
   }
 }
 
@@ -344,24 +354,39 @@ void cDuctSegmentStriated::step(double current_time, double timestep) {
   out << "<DuctSegmentStriated> step - threads in use: " << omp_get_num_threads() << std::endl;
 
   // Testing: call f_ODE once
-//  Array1Nd testx(1, get_nvars());
-//  Array1Nd testxdot(1, get_nvars());
-//  gather_x(testx);
-//  f_ODE(testx, testxdot);
-//  std::ofstream xfile("xdump.txt");
-//  xfile << std::fixed << std::setprecision(15);
-//  xfile << testx.transpose();
-//  xfile.close();
-//  std::ofstream xdotfile("xdotdump.txt");
-//  xdotfile << std::fixed << std::setprecision(15);
-//  xdotfile << testxdot.transpose();
-//  xdotfile.close();
+  if (stepnum == 0) {
+    Array1Nd testx(1, get_nvars());
+    Array1Nd testxdot(1, get_nvars());
+    gather_x(testx);
+    f_ODE(testx, testxdot);
+    std::ofstream xfile("xdump.txt");
+    xfile << std::fixed << std::setprecision(15);
+    xfile << testx.transpose();
+    xfile.close();
+    std::ofstream xdotfile("xdotdump.txt");
+    xdotfile << std::fixed << std::setprecision(15);
+    xdotfile << testxdot.transpose();
+    xdotfile.close();
+  }
   // End testing
 
   // call the solver
   gather_x(x);
-  solver->run(current_time, timestep, x);
+  solver->run(current_time, current_time + timestep, x);
   solver->PrintFinalStatsBrief();
 
+  // store results
+  stepnum++;
+  if (stepnum % int(p.at("Tstride")) == 0) {
+    save_results(current_time + timestep);
+  }
 }
 
+void cDuctSegmentStriated::save_results(double result_time) {
+  int nv = lumen_prop.n_int * LUMENALCOUNT + cells.size() * CELLULARCOUNT;
+  float* fbuf = new float[nv+1];  // +1 for storing time in first column
+  fbuf[0] = result_time;
+  for (int n = 0; n < nv; n++) fbuf[n+1] = x[n]; // convert to float for reduced file size
+  results_file.write(reinterpret_cast<char*>(fbuf), (nv+1) * sizeof(float));
+  delete [] fbuf;
+}

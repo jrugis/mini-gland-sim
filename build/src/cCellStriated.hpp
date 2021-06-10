@@ -63,6 +63,7 @@ class cCellStriated : public cCell {
   void init(dss::parameters_t &parent_P);
   const double get_min_z() { return min_z; }
   const double get_max_z() { return max_z; }
+  const double get_mean_z() { return mean_z; }
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW   // required when using fixed-size vectorizable Eigen object(s)
 
   private:
@@ -75,7 +76,7 @@ class cCellStriated : public cCell {
   //std::vector<double> api_area_int;
   Array1Nd api_area_int;
   S::scaled_rates_t scaled_rates;
-  double min_z, max_z;
+  double min_z, max_z, mean_z;
   void setup_parameters(dss::parameters_t &parent_P);
   void setup_IC();
   void init_const();

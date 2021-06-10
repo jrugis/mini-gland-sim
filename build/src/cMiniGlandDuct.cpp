@@ -76,7 +76,7 @@ void cMiniGlandDuct::run()
     clock_gettime(CLOCK_REALTIME, &end);
     elapsed = (end.tv_sec - start.tv_sec) + ((end.tv_nsec - start.tv_nsec) / 1000000000.0);
     out << std::fixed << std::setprecision(3);
-    out << "<MiniGlandDuct> step duration: " << elapsed << "s" << std::endl;
+    out << "<MiniGlandDuct> current time: " << t + solver_dt << "; step duration: " << elapsed << "s" << std::endl;
     start = end;
     t += solver_dt;
   }

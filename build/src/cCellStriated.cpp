@@ -23,16 +23,20 @@ cCellStriated::cCellStriated(cDuctSegment* parent, int cell_number) : cCell(pare
 {
   out << "<CellStriated> @constructor" << std::endl;
 
-  // min/max z coordinate
+  // min/max/mean z coordinate
   min_z = std::numeric_limits<double>::max();
   max_z = std::numeric_limits<double>::lowest();
+  double sum_z = 0.0;
   for (int n = 0; n < nfaces; n++) {
     for (int i = 0; i < 3; i++) {
       double zcoord = verts.row(faces(n, i))(2);
       min_z = std::min(min_z, zcoord);
       max_z = std::max(max_z, zcoord);
+      sum_z += zcoord;
     }
   }
+  mean_z = sum_z / (nfaces * 3);  // TODO: double check, could be counting vertices multiple times??
+  out << "<CellStriated>: centroid_z = " << mean_z << std::endl;
 }
 
 void cCellStriated::init(dss::parameters_t &parent_P) {
