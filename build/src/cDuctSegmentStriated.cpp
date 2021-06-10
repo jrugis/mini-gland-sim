@@ -273,6 +273,12 @@ void cDuctSegmentStriated::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
   double L = lumen_prop.L;
   double A_L = lumen_prop.X_area;
 
+  // loop through the cells to populate the rate of change for each cell/variable
+  #pragma omp parallel for
+  for (int i = 0; i < n_c; i++) {
+    static_cast<cCellStriated*>(cells[i])->f_ODE(x_l, lumen_prop);
+  }
+
   // setup a vector to record the rate of change of lumen fluid flow
   Array1Nd dwAdt(1, n_l);
   dwAdt.setZero();
@@ -280,9 +286,11 @@ void cDuctSegmentStriated::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
   // setup the ode rate of change matrices
   dxldt.setZero();
 
-  // loop through the cells to populate the rate of change for each cell/variable
+  // sum values from cells
   for (int i = 0; i < n_c; i++) {
-    static_cast<cCellStriated*>(cells[i])->f_ODE(x_l, lumen_prop, dxldt, dwAdt);
+    cCellStriated* cell_striated = static_cast<cCellStriated*>(cells[i]);
+    dwAdt += cell_striated->dwAdt;
+    dxldt += cell_striated->dxldt;
   }
 
   // % compute the fluid flow rate in the lumen

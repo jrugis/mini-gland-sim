@@ -58,8 +58,10 @@ class cCellStriated : public cCell {
   public:
   cCellStriated(cDuctSegment* parent, int cell_number);
   S::Array1CC x_c, dxcdt;   // solution vectors for ions
+  dss::ArrayNFC dxldt;
+  Array1Nd dwAdt;
   void process_mesh_info(std::vector<double>& lumen_segment);
-  void f_ODE(const dss::ArrayNFC &xl, const dss::lumen_prop_t &lumen_prop, dss::ArrayNFC &dxldt, Array1Nd &dwAdt);
+  void f_ODE(const dss::ArrayNFC &xl, const dss::lumen_prop_t &lumen_prop);
   void init(dss::parameters_t &parent_P);
   const double get_min_z() { return min_z; }
   const double get_max_z() { return max_z; }
