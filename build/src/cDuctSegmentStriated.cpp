@@ -299,10 +299,11 @@ void cDuctSegmentStriated::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
   Array1Nd v(1, n_l);
   v = P.PSflow;
   Array1Nd v_up(1, n_l);
-  v_up - P.PSflow;
+  v_up = P.PSflow;
 
   // accumulate the fluid as secreted from cells along the lumen
   std::partial_sum(dwAdt.begin(), dwAdt.end(), v.begin());
+  v += P.PSflow;
 
   // construct a matrix to represent the upstream variable value for each lumen segment
   ArrayNFC x_up;
