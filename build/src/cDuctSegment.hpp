@@ -24,7 +24,7 @@ class cDuctSegment {
   public:
   cDuctSegment(cMiniGlandDuct* parent, int seg_number);
   virtual ~cDuctSegment();
-  virtual void step(){}; // redefined in the derived classes
+  virtual void step(double t, double dt){}; // redefined in the derived classes
 
   // the actual in/out fluid flow data variables should go here for the duct object to read & write
 

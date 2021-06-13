@@ -67,7 +67,7 @@ void cMiniGlandDuct::run()
   while ((p.at("totalT") - t) > 0.000001) { // HARD CODED: assumes solver_dt always > 1us
 
 #pragma omp parallel for
-	for (auto seg : segments) { seg->step(); }
+	for (auto seg : segments) { seg->step(t, solver_dt); }
 
     // combine duct segment fluid flow  --  TO DO
     // ....
@@ -76,7 +76,7 @@ void cMiniGlandDuct::run()
     clock_gettime(CLOCK_REALTIME, &end);
     elapsed = (end.tv_sec - start.tv_sec) + ((end.tv_nsec - start.tv_nsec) / 1000000000.0);
     out << std::fixed << std::setprecision(3);
-    out << "<MiniGlandDuct> step duration: " << elapsed << "s" << std::endl;
+    out << "<MiniGlandDuct> current time: " << t + solver_dt << "; step duration: " << elapsed << "s" << std::endl;
     start = end;
     t += solver_dt;
   }

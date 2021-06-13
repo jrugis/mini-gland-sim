@@ -8,6 +8,7 @@
 #ifndef DEFS_H_
 #define DEFS_H_
 
+#include <Eigen/Core>
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 //#include <cmath>
@@ -38,13 +39,15 @@ typedef Eigen::Vector3d Vector3d;
 typedef Eigen::Vector3i Vector3i;
 typedef Eigen::Vector4i Vector4i;
 
+typedef Eigen::Array<double, 1, Eigen::Dynamic> Array1Nd;
+
 //************************************************************************
 // thermodynamic constants
-#define R 8.3144621
+#define R 8.13144621
 #define T 310
-#define F 96485.3365
+#define F_const 96485.3329
 #define V_w 18e12
-const double RTF = 1000.0 * R * T / F;
+const double RTF = 1000.0 * R * T / F_const;
 
 //************************************************************************
 //************************************************************************

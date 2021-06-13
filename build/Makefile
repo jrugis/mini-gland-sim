@@ -13,7 +13,7 @@
 ##
 ###########################################################################################
 ## C++
-CPP_DEFS = -std=c++17 -fopenmp 
+CPP_DEFS = -std=c++17 -fopenmp # -DNDEBUG
 CPP = gcc
 
 ###########################################################################################
@@ -27,6 +27,7 @@ CPP = gcc
 
 ## optimised
 CPP_FLAGS =  $(CPP_DEFS) -m64 -O3 -march=native -mtune=native -Wall -Wpedantic -g
+#CPP_FLAGS =  $(CPP_DEFS) -m64 -O0 -Wall -Wpedantic -g
 #CPP_FLAGS =  $(CPP_DEFS) -m64 -Og -Wextra -march=native -mtune=native -Wall -Wpedantic -g
 
 ###########################################################################################
@@ -37,12 +38,12 @@ CPP_FLAGS =  $(CPP_DEFS) -m64 -O3 -march=native -mtune=native -Wall -Wpedantic -
 #CPP_LIBS = -lsundials_cvodes
 #CPP_LIBS = -l/usr/local/Cellar/boost/1.75.0_2/lib  # iMac
 #CPP_LIBS = -lboost_system
-CPP_LIBS = -lstdc++
+CPP_LIBS = -lstdc++ -lm -lsundials_cvode
 
 ###########################################################################################
 
 EXE = ../run/mini-gland-sim
-OBJS = main.o utils.o cMiniGlandDuct.o cDuctSegment.o  cDuctSegmentAcinus.o cDuctSegmentIntercalated.o cDuctSegmentStriated.o cCell.o cCellAcinus.o cCellIntercalated.o cCellStriated.o
+OBJS = main.o utils.o cMiniGlandDuct.o cDuctSegment.o  cDuctSegmentAcinus.o cDuctSegmentIntercalated.o cDuctSegmentStriated.o cCell.o cCellAcinus.o cCellIntercalated.o cCellStriated.o cCVode.o #cLSODA.o LSODA.o
 SRC = ./src
 
 all: $(EXE)
@@ -80,6 +81,14 @@ cCellIntercalated.o: $(SRC)/cCellIntercalated.cpp $(SRC)/cCell.hpp
 cCellStriated.o: $(SRC)/cCellStriated.cpp $(SRC)/cCellStriated.hpp 
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
+cCVode.o: $(SRC)/cCVode.cpp $(SRC)/cCVode.hpp
+	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
+
+LSODA.o: $(SRC)/libsoda/LSODA.cpp $(SRC)/libsoda/LSODA.h $(SRC)/libsoda/helper.h
+	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
+
+cLSODA.o: $(SRC)/cLSODA.cpp $(SRC)/cLSODA.hpp $(SRC)/libsoda/LSODA.h
+	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 #cLumen.o: $(SRC)/cLumen.cpp $(SRC)/cLumen.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp 
 #	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
