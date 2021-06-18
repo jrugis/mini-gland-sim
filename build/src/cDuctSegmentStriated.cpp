@@ -13,9 +13,11 @@
 #include <algorithm>
 #include <limits>
 #include <numeric>
+#include <optional>
 #include <omp.h>
 #include <nvector/nvector_serial.h>    /* access to serial N_Vector            */
 #include <sundials/sundials_types.h>   /* defs. of realtype, sunindextype      */
+#include "h5pp/h5pp.h"
 
 #include "cCell.hpp"
 #include "cDuctSegment.hpp"
@@ -56,9 +58,6 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   out << "<DuctSegmentStriated> initialiser" << std::endl;
 
   // Model input setup (TODO: should these be read from parameter file? or from another class...)
-
-  // open the results file
-  results_file.open(id + "_results.bin", std::ios::binary);
 
   double L_int = 1;  // um length of lumen discretisation interval
   PSflow = 100 / 10;  // um3/s volumetric primary saliva flow rate
@@ -107,17 +106,36 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   centroid_file.close();
 
   // allocate solver vectors
-  x.resize(1, LUMENALCOUNT*lumen_prop.n_int + CELLULARCOUNT*cells.size());
-  dxdt.resize(1, LUMENALCOUNT*lumen_prop.n_int + CELLULARCOUNT*cells.size());
+  int num_var = LUMENALCOUNT*lumen_prop.n_int + CELLULARCOUNT*cells.size();
+  x.resize(1, num_var);
+  dxdt.resize(1, num_var);
   gather_x(x);
 
   // setting up the solver
   solver = new cCVode(out, p.at("odeSolverAbsTol"), p.at("odeSolverRelTol"));
   solver->init(ode_func, x, static_cast<void*>(this));
+
+  // open the results file
+  results_file.open(id + "_results.bin", std::ios::binary);
+
+  // create hdf5 dataset
+  int num_steps = std::ceil(p.at("totalT") / (p.at("delT") * p.at("Tstride")));
+  out << "<DuctSegmentStriated> output data size: " << num_steps << " x " << num_var << std::endl;
+  resultsh5_filename = id + "_results.h5";
+  resultsh5_dataset = id + "/x";
+
+  // initialise the file
+  h5pp::File resultsh5(resultsh5_filename, h5pp::FilePermission::REPLACE);
+
+  // create dataset
+  resultsh5.writeDataset(x, resultsh5_dataset, std::nullopt, H5D_CHUNKED, std::nullopt, std::nullopt,
+        std::nullopt, h5pp::ResizePolicy::INCREASE_ONLY, std::nullopt);
+
 }
 
 cDuctSegmentStriated::~cDuctSegmentStriated() {
   delete solver;
+  results_file.close();
 }
 
 void cDuctSegmentStriated::process_mesh_info(double L) {
@@ -398,4 +416,8 @@ void cDuctSegmentStriated::save_results(double result_time) {
   for (int n = 0; n < nv; n++) fbuf[n+1] = x[n]; // convert to float for reduced file size
   results_file.write(reinterpret_cast<char*>(fbuf), (nv+1) * sizeof(float));
   delete [] fbuf;
+
+  // append to variable in HDF5 file...
+  h5pp::File resultsh5(resultsh5_filename, h5pp::FilePermission::READWRITE);
+  resultsh5.appendToDataset(x, resultsh5_dataset, 0);
 }

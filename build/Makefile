@@ -13,7 +13,7 @@
 ##
 ###########################################################################################
 ## C++
-CPP_DEFS = -std=c++17 -fopenmp # -DNDEBUG
+CPP_DEFS = -std=c++17 -fopenmp -DNDEBUG
 CPP = gcc
 
 ###########################################################################################
@@ -38,7 +38,7 @@ CPP_FLAGS =  $(CPP_DEFS) -m64 -O3 -march=native -mtune=native -Wall -Wpedantic -
 #CPP_LIBS = -lsundials_cvodes
 #CPP_LIBS = -l/usr/local/Cellar/boost/1.75.0_2/lib  # iMac
 #CPP_LIBS = -lboost_system
-CPP_LIBS = -lstdc++ -lm -lsundials_cvode
+CPP_LIBS = -lstdc++ -lstdc++fs -lm -lsundials_cvode -lhdf5_hl -lhdf5
 
 ###########################################################################################
 
