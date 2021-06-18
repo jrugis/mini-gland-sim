@@ -119,7 +119,7 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   results_file.open(id + "_results.bin", std::ios::binary);
 
   // create hdf5 dataset
-  int num_steps = std::ceil(p.at("totalT") / (p.at("delT") * p.at("Tstride")));
+  int num_steps = std::ceil(p.at("totalT") / (p.at("delT") * p.at("Tstride"))) + 1;
   out << "<DuctSegmentStriated> output data size: " << num_steps << " x " << num_var << std::endl;
   resultsh5_filename = id + "_results.h5";
   resultsh5_dataset = id + "/x";
@@ -127,9 +127,19 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   // initialise the file
   h5pp::File resultsh5(resultsh5_filename, h5pp::FilePermission::REPLACE);
 
-  // create dataset
-  resultsh5.writeDataset(x, resultsh5_dataset, std::nullopt, H5D_CHUNKED, std::nullopt, std::nullopt,
-        std::nullopt, h5pp::ResizePolicy::INCREASE_ONLY, std::nullopt);
+  // write t=0
+  outputnum = 0;
+  resultsh5.createDataset(x, resultsh5_dataset, {num_steps, num_var});
+  save_results(0);
+
+  // store some attributes (output time interval, lumen vars, etc)
+  resultsh5.writeAttribute(LUMENALCOUNT, "lumenal variables", resultsh5_dataset);
+  resultsh5.writeAttribute(lumen_prop.n_int, "lumen segments", resultsh5_dataset);
+  resultsh5.writeAttribute(CELLULARCOUNT, "cellular variables", resultsh5_dataset);
+  resultsh5.writeAttribute(static_cast<int>(cells.size()), "cells", resultsh5_dataset);
+
+  double outputdt = p.at("delT") * p.at("Tstride");
+  resultsh5.writeAttribute(outputdt, "output time interval", "/");
 
 }
 
@@ -419,5 +429,7 @@ void cDuctSegmentStriated::save_results(double result_time) {
 
   // append to variable in HDF5 file...
   h5pp::File resultsh5(resultsh5_filename, h5pp::FilePermission::READWRITE);
-  resultsh5.appendToDataset(x, resultsh5_dataset, 0);
+  resultsh5.writeHyperslab(x, resultsh5_dataset, h5pp::Hyperslab({outputnum, 0}, {1, nv}));
+  outputnum++;
+
 }

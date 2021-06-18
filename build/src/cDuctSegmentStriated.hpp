@@ -154,7 +154,7 @@ class cDuctSegmentStriated : public cDuctSegment {
   Array1Nd x, dxdt;
   cCVode *solver;
   std::ofstream results_file;
-  int stepnum;
+  int stepnum, outputnum;
   std::string resultsh5_dataset, resultsh5_filename;
 };
 
