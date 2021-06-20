@@ -54,7 +54,7 @@ static int ode_func(realtype t, N_Vector y, N_Vector ydot, void* user_data)
   return (0);
 }
 
-cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_number) : cDuctSegment(_parent, _seg_number), stepnum(0) {
+cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_number) : cDuctSegment(_parent, _seg_number), stepnum(0), outputnum(0) {
   out << "<DuctSegmentStriated> initialiser" << std::endl;
 
   // Model input setup (TODO: should these be read from parameter file? or from another class...)
@@ -90,6 +90,7 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   std::ofstream centroid_file(id + "_zcentroid.dat");
   centroid_file << std::scientific << std::setprecision(16);
   int ncells = cells.size();
+  Eigen::VectorXf cellz(ncells);
   for (int i = 0; i < ncells; i++) {
     // have to cast to cCellStriated to get methods defined only on that class
     cCellStriated *cell_striated = static_cast<cCellStriated*>(cells[i]);
@@ -102,6 +103,7 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
 
     // store centroid z coordinate for postprocessing
     centroid_file << cell_striated->get_mean_z() << std::endl;
+    cellz(i) = static_cast<float>(cell_striated->get_mean_z());
   }
   centroid_file.close();
 
@@ -127,9 +129,9 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   // initialise the file
   h5pp::File resultsh5(resultsh5_filename, h5pp::FilePermission::REPLACE);
 
-  // write t=0
-  outputnum = 0;
-  resultsh5.createDataset(x, resultsh5_dataset, {num_steps, num_var});
+  // create the dataset and write t=0
+  Eigen::VectorXf xf(num_var);
+  resultsh5.createDataset(xf, resultsh5_dataset, {num_steps, num_var});
   save_results(0);
 
   // store some attributes (output time interval, lumen vars, etc)
@@ -137,10 +139,11 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   resultsh5.writeAttribute(lumen_prop.n_int, "lumen segments", resultsh5_dataset);
   resultsh5.writeAttribute(CELLULARCOUNT, "cellular variables", resultsh5_dataset);
   resultsh5.writeAttribute(static_cast<int>(cells.size()), "cells", resultsh5_dataset);
-
   double outputdt = p.at("delT") * p.at("Tstride");
   resultsh5.writeAttribute(outputdt, "output time interval", "/");
 
+  // store cell centroid z components for postprocessing
+  resultsh5.writeDataset(cellz, id + "/zcells");
 }
 
 cDuctSegmentStriated::~cDuctSegmentStriated() {
@@ -429,7 +432,10 @@ void cDuctSegmentStriated::save_results(double result_time) {
 
   // append to variable in HDF5 file...
   h5pp::File resultsh5(resultsh5_filename, h5pp::FilePermission::READWRITE);
-  resultsh5.writeHyperslab(x, resultsh5_dataset, h5pp::Hyperslab({outputnum, 0}, {1, nv}));
+  Eigen::VectorXf xf(nv);
+  xf = x.cast<float>();
+  resultsh5.writeHyperslab(xf, resultsh5_dataset, h5pp::Hyperslab({outputnum, 0}, {1, nv}));
+  
   outputnum++;
 
 }
