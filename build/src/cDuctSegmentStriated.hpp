@@ -144,7 +144,7 @@ class cDuctSegmentStriated : public cDuctSegment {
   void setup_IC();
   void distribute_x(const Array1Nd &x_in);
   void gather_x(Array1Nd &x_out);
-  void save_results(double result_time);
+  void save_results();
 
   double PSflow;  // um3/s volumetric primary saliva flow rate
   dss::conc_t Conc;
@@ -153,7 +153,6 @@ class cDuctSegmentStriated : public cDuctSegment {
   dss::ArrayNFC x_l, dxldt;  // solution vector and derivative
   Array1Nd x, dxdt;
   cCVode *solver;
-  std::ofstream results_file;
   int stepnum, outputnum;
   std::string resultsh5_dataset, resultsh5_filename;
 };

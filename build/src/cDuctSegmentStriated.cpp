@@ -87,8 +87,6 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   setup_IC();
 
   // setup the cells too
-  std::ofstream centroid_file(id + "_zcentroid.dat");
-  centroid_file << std::scientific << std::setprecision(16);
   int ncells = cells.size();
   Eigen::VectorXf cellz(ncells);
   for (int i = 0; i < ncells; i++) {
@@ -102,10 +100,8 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
     cell_striated->process_mesh_info(lumen_prop.segment);
 
     // store centroid z coordinate for postprocessing
-    centroid_file << cell_striated->get_mean_z() << std::endl;
     cellz(i) = static_cast<float>(cell_striated->get_mean_z());
   }
-  centroid_file.close();
 
   // allocate solver vectors
   int num_var = LUMENALCOUNT*lumen_prop.n_int + CELLULARCOUNT*cells.size();
@@ -116,9 +112,6 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   // setting up the solver
   solver = new cCVode(out, p.at("odeSolverAbsTol"), p.at("odeSolverRelTol"));
   solver->init(ode_func, x, static_cast<void*>(this));
-
-  // open the results file
-  results_file.open(id + "_results.bin", std::ios::binary);
 
   // create hdf5 dataset
   int num_steps = std::ceil(p.at("totalT") / (p.at("delT") * p.at("Tstride"))) + 1;
@@ -132,7 +125,7 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   // create the dataset and write t=0
   Eigen::VectorXf xf(num_var);
   resultsh5.createDataset(xf, resultsh5_dataset, {num_steps, num_var});
-  save_results(0);
+  save_results();
 
   // store some attributes (output time interval, lumen vars, etc)
   resultsh5.writeAttribute(LUMENALCOUNT, "lumenal variables", resultsh5_dataset);
@@ -144,11 +137,17 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
 
   // store cell centroid z components for postprocessing
   resultsh5.writeDataset(cellz, id + "/zcells");
+
+  // store lumen segments
+  Eigen::VectorXf segf(lumen_prop.n_int + 1);
+  for (int i = 0; i < lumen_prop.n_int + 1; i++) {
+    segf(i) = static_cast<float>(lumen_prop.segment[i]);
+  }
+  resultsh5.writeDataset(segf, id + "/segment");
 }
 
 cDuctSegmentStriated::~cDuctSegmentStriated() {
   delete solver;
-  results_file.close();
 }
 
 void cDuctSegmentStriated::process_mesh_info(double L) {
@@ -388,27 +387,7 @@ int cDuctSegmentStriated::get_nvars() {
 }
 
 void cDuctSegmentStriated::step(double current_time, double timestep) {
-  // combine cells fluid flow  --  TO DO
-  // ....
-
   out << "<DuctSegmentStriated> step - threads in use: " << omp_get_num_threads() << std::endl;
-
-  // Testing: call f_ODE once
-  if (stepnum == 0) {
-    Array1Nd testx(1, get_nvars());
-    Array1Nd testxdot(1, get_nvars());
-    gather_x(testx);
-    f_ODE(testx, testxdot);
-    std::ofstream xfile("xdump.txt");
-    xfile << std::fixed << std::setprecision(15);
-    xfile << testx.transpose();
-    xfile.close();
-    std::ofstream xdotfile("xdotdump.txt");
-    xdotfile << std::fixed << std::setprecision(15);
-    xdotfile << testxdot.transpose();
-    xdotfile.close();
-  }
-  // End testing
 
   // call the solver
   gather_x(x);
@@ -418,24 +397,16 @@ void cDuctSegmentStriated::step(double current_time, double timestep) {
   // store results
   stepnum++;
   if (stepnum % int(p.at("Tstride")) == 0) {
-    save_results(current_time + timestep);
+    save_results();
   }
 }
 
-void cDuctSegmentStriated::save_results(double result_time) {
-  int nv = lumen_prop.n_int * LUMENALCOUNT + cells.size() * CELLULARCOUNT;
-  float* fbuf = new float[nv+1];  // +1 for storing time in first column
-  fbuf[0] = result_time;
-  for (int n = 0; n < nv; n++) fbuf[n+1] = x[n]; // convert to float for reduced file size
-  results_file.write(reinterpret_cast<char*>(fbuf), (nv+1) * sizeof(float));
-  delete [] fbuf;
-
+void cDuctSegmentStriated::save_results() {
   // append to variable in HDF5 file...
   h5pp::File resultsh5(resultsh5_filename, h5pp::FilePermission::READWRITE);
+  int nv = lumen_prop.n_int * LUMENALCOUNT + cells.size() * CELLULARCOUNT;
   Eigen::VectorXf xf(nv);
   xf = x.cast<float>();
   resultsh5.writeHyperslab(xf, resultsh5_dataset, h5pp::Hyperslab({outputnum, 0}, {1, nv}));
-  
   outputnum++;
-
 }
