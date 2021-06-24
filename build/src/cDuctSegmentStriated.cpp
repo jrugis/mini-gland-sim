@@ -39,6 +39,7 @@ static int ode_func(realtype t, N_Vector y, N_Vector ydot, void* user_data)
   Array1Nd ydotmat(1, nvars);
 
   // copy input from sundials data structure to array for calling secretion function
+  #pragma omp parallel for
   for (int i = 0; i < nvars; i++) { 
     ymat(i) = NV_Ith_S(y, i);
   }
@@ -47,6 +48,7 @@ static int ode_func(realtype t, N_Vector y, N_Vector ydot, void* user_data)
   pt_dss->f_ODE(ymat, ydotmat);
 
   // copy result back into sundials data structure
+  #pragma omp parallel for
   for (int i = 0; i < nvars; i++) {
     NV_Ith_S(ydot, i) = ydotmat(i);
   }
