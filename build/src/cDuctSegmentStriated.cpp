@@ -391,6 +391,24 @@ int cDuctSegmentStriated::get_nvars() {
 void cDuctSegmentStriated::step(double current_time, double timestep) {
   out << "<DuctSegmentStriated> step - threads in use: " << omp_get_num_threads() << std::endl;
 
+  // Testing: call f_ODE once
+  if (stepnum == 0) {
+    out << "writing x and xdot for debugging" << std::endl;
+    Array1Nd testx(1, get_nvars());
+    Array1Nd testxdot(1, get_nvars());
+    gather_x(testx);
+    f_ODE(testx, testxdot);
+    std::ofstream xfile("xdump.txt");
+    xfile << std::fixed << std::setprecision(15);
+    xfile << testx.transpose();
+    xfile.close();
+    std::ofstream xdotfile("xdotdump.txt");
+    xdotfile << std::fixed << std::setprecision(15);
+    xdotfile << testxdot.transpose();
+    xdotfile.close();
+  }
+  // End testing
+
   // call the solver
   gather_x(x);
   solver->run(current_time, current_time + timestep, x);
