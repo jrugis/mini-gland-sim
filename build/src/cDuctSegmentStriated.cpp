@@ -24,6 +24,9 @@
 #include "cDuctSegmentStriated.hpp"
 #include "cCellStriated.hpp"
 #include "cCVode.hpp"
+#include "utils.hpp"
+
+#define DEBUGFODE
 
 using namespace dss;
 
@@ -380,6 +383,15 @@ void cDuctSegmentStriated::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
     int idx = s_l + i * LUMENALCOUNT;
     dxdt(0, Eigen::seq(idx, idx+LUMENALCOUNT-1)) = dxldt.col(i);
   }
+  
+#ifdef DEBUGFODE
+    out << std::scientific << std::setprecision(8);
+    out << "================ DEBUG =================" << std::endl;
+    out << "initial P.S. flow rate: %2.2f  um3 " << (v_up(0)*A_L) << std::endl;
+    out << "final P.S. flow rate:   %2.2f  um3 " << (v(Eigen::last)*A_L) << std::endl;
+    out << "percentage:             %2.2f  " << (v(Eigen::last)-v_up(0))/v_up(0)*100 << std::endl;
+    out << "================ END DEBUG =================" << std::endl;
+#endif
 }
 
 int cDuctSegmentStriated::get_nvars() {
@@ -407,6 +419,10 @@ void cDuctSegmentStriated::step(double current_time, double timestep) {
     xdotfile << std::fixed << std::setprecision(15);
     xdotfile << testxdot.transpose();
     xdotfile.close();
+
+#ifdef DEBUGFODE
+    utils::fatal_error("stopping for debugging", out);
+#endif
   }
   // End testing
 
