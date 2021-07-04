@@ -127,6 +127,7 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   // create the dataset and write t=0
   Eigen::VectorXf xf(num_var);
   resultsh5.createDataset(xf, resultsh5_dataset, {num_steps, num_var});
+  resultsh5.createDataset(xf, id + "/xdot", {num_steps, num_var});
   save_results();
 
   // store some attributes (output time interval, lumen vars, etc)
@@ -428,5 +429,12 @@ void cDuctSegmentStriated::save_results() {
   Eigen::VectorXf xf(nv);
   xf = x.cast<float>();
   resultsh5.writeHyperslab(xf, resultsh5_dataset, h5pp::Hyperslab({outputnum, 0}, {1, nv}));
+
+  Array1Nd xdot(1, nv);
+  f_ODE(x, xdot);
+  Eigen::VectorXf xdotf(nv);
+  xdotf = xdot.cast<float>();
+  resultsh5.writeHyperslab(xdotf, id + "/xdot", h5pp::Hyperslab({outputnum, 0}, {1, nv}));
+
   outputnum++;
 }

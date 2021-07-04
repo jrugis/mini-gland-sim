@@ -112,6 +112,7 @@ plots[1,0].plot(cellpos, mx_c[2, sortedidx], label="Mat")
 plots[1,0].legend(loc='best')
 plots[1,0].set_title("Cell Volume")
 plots[1,0].set_ylabel("um3")
+plots[1,0].ticklabel_format(useOffset=False)
 
 plots[1,1].plot(intpos, x_l[0, :], label="Na_A")
 plots[1,1].plot(intpos, x_l[1, :], label="K_A")
