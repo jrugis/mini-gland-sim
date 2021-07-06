@@ -16,7 +16,7 @@
 #include "cCell.hpp"
 #include "cCellStriated.hpp"
 
-#define DEBUGFODE
+//#define DEBUGFODE
 
 using namespace S;
 using namespace dss;
@@ -355,11 +355,6 @@ void cCellStriated::f_ODE(const dss::ArrayNFC &x_l, const dss::lumen_prop_t &lum
   V_A_Na = 1e3*R*T/F_const*(Na_A/Na_C).log();
   Array1Nd I_ENaC(1, n_loc_int);
   I_ENaC = G_ENaC * api_area_int * (V_A - V_A_Na);
-  out << "DEBUG I_ENac" << std::endl;
-  out << "  G_ENaC = " << G_ENaC << std::endl;
-  out << "  A_A_int = " << api_area_int << std::endl;
-  out << "  V_A = " << V_A << std::endl;
-  out << "  V_A_Na = " << V_A_Na << std::endl;
 
   // % NaKATPase, NKA 
   // J_NKA_A = A_A_int .* alpha_NKA_A * r_NKA .*(K_A.^2.*Na_C.^3)./(K_A.^2+beta_NKA*Na_C.^3); % 10^-12 mol/s [1,n_loc_int]
@@ -480,4 +475,11 @@ void cCellStriated::f_ODE(const dss::ArrayNFC &x_l, const dss::lumen_prop_t &lum
   out << "HC flux A: %.8d nA " <<  I_CFTR_B*1e-6 - J_AE2_A*F_const*1e-9 - J_buf_A*F_const*w_A*1e-9 << std::endl;
   out << "================ END DEBUG =================" << std::endl;
 #endif
+}
+
+const double cCellStriated::compute_electroneutrality_check() {
+  // in mol
+  double e = (x_c(3) + x_c(4) - x_c(5) - x_c(6) + x_c(7)) * x_c(2) * 1e-18 - 1.5 * P.chi_C;
+
+  return e;
 }

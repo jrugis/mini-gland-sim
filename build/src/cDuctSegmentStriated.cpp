@@ -26,8 +26,9 @@
 #include "cCVode.hpp"
 #include "utils.hpp"
 
-#define DEBUGFODE
-#define DEBUGFODELOADX
+//#define DEBUGFODE
+//#define DEBUGFODELOADX
+//#define DEBUGWRITEXDOT
 
 using namespace dss;
 
@@ -128,17 +129,22 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   // initialise the file
   h5pp::File resultsh5(resultsh5_filename, h5pp::FilePermission::REPLACE);
 
-  // create the dataset and write t=0
+  // create the dataset for x (and xdot for debugging)
   Eigen::VectorXf xf(num_var);
   resultsh5.createDataset(xf, resultsh5_dataset, {num_steps, num_var});
+#ifdef DEBUGWRITEXDOT
   resultsh5.createDataset(xf, id + "/xdot", {num_steps, num_var});
-  save_results();
+#endif
+
+  // create dataset for electroneutrality
+  Eigen::VectorXf ef(ncells);
+  resultsh5.createDataset(ef, id + "/electroneutrality", {num_steps, ncells});
 
   // store some attributes (output time interval, lumen vars, etc)
-  resultsh5.writeAttribute(LUMENALCOUNT, "lumenal variables", resultsh5_dataset);
-  resultsh5.writeAttribute(lumen_prop.n_int, "lumen segments", resultsh5_dataset);
-  resultsh5.writeAttribute(CELLULARCOUNT, "cellular variables", resultsh5_dataset);
-  resultsh5.writeAttribute(static_cast<int>(cells.size()), "cells", resultsh5_dataset);
+  resultsh5.writeAttribute(LUMENALCOUNT, "number of lumenal variables", id);
+  resultsh5.writeAttribute(lumen_prop.n_int, "number of lumen segments", id);
+  resultsh5.writeAttribute(CELLULARCOUNT, "number of cellular variables", id);
+  resultsh5.writeAttribute(static_cast<int>(cells.size()), "number of cells", id);
   double outputdt = p.at("delT") * p.at("Tstride");
   resultsh5.writeAttribute(outputdt, "output time interval", "/");
 
@@ -151,6 +157,9 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
     segf(i) = static_cast<float>(lumen_prop.segment[i]);
   }
   resultsh5.writeDataset(segf, id + "/segment");
+
+  // store t=0
+  save_results();
 }
 
 cDuctSegmentStriated::~cDuctSegmentStriated() {
@@ -301,7 +310,6 @@ void cDuctSegmentStriated::gather_x(Array1Nd &x_out) {
 }
 
 void cDuctSegmentStriated::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
-  out << "CALLING F_ODE" << std::endl;
   // populate x_l and x_c from x_in
   distribute_x(x_in);
 
@@ -454,16 +462,28 @@ void cDuctSegmentStriated::step(double current_time, double timestep) {
 void cDuctSegmentStriated::save_results() {
   // append to variable in HDF5 file...
   h5pp::File resultsh5(resultsh5_filename, h5pp::FilePermission::READWRITE);
-  int nv = lumen_prop.n_int * LUMENALCOUNT + cells.size() * CELLULARCOUNT;
+  int nv = get_nvars();
   Eigen::VectorXf xf(nv);
   xf = x.cast<float>();
   resultsh5.writeHyperslab(xf, resultsh5_dataset, h5pp::Hyperslab({outputnum, 0}, {1, nv}));
 
+#ifdef DEBUGWRITEXDOT
+  // temporarily outputting xdot for debugging
   Array1Nd xdot(1, nv);
   f_ODE(x, xdot);
   Eigen::VectorXf xdotf(nv);
   xdotf = xdot.cast<float>();
   resultsh5.writeHyperslab(xdotf, id + "/xdot", h5pp::Hyperslab({outputnum, 0}, {1, nv}));
+#endif
+
+  // outputting electroneutrality check
+  int nc = cells.size();
+  Eigen::VectorXf ef(nc);
+  for (int i = 0; i < nc; i++) {
+    double cell_e = static_cast<cCellStriated*>(cells[i])->compute_electroneutrality_check();
+    ef(i) = static_cast<float>(cell_e);
+  }
+  resultsh5.writeHyperslab(ef, id + "/electroneutrality", h5pp::Hyperslab({outputnum, 0}, {1, nc}));
 
   outputnum++;
 }
