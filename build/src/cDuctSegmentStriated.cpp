@@ -27,6 +27,7 @@
 #include "utils.hpp"
 
 #define DEBUGFODE
+#define DEBUGFODELOADX
 
 using namespace dss;
 
@@ -276,7 +277,8 @@ void cDuctSegmentStriated::distribute_x(const Array1Nd &x_in) {
   int n_l = lumen_prop.n_int;
   for (int i = 0; i < n_c; i++) {
     cCellStriated *cell_striated = static_cast<cCellStriated*>(cells[i]);
-    cell_striated->x_c = x_in(Eigen::seq(i*CELLULARCOUNT, (i+1)*CELLULARCOUNT-1));
+    int start = i * CELLULARCOUNT;
+    cell_striated->x_c.row(0) = x_in(0, Eigen::seq(start, start+CELLULARCOUNT-1));
   }
   int s_l = CELLULARCOUNT * n_c;
   for (int i = 0; i < n_l; i++) {
@@ -299,6 +301,7 @@ void cDuctSegmentStriated::gather_x(Array1Nd &x_out) {
 }
 
 void cDuctSegmentStriated::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
+  out << "CALLING F_ODE" << std::endl;
   // populate x_l and x_c from x_in
   distribute_x(x_in);
 
@@ -410,6 +413,16 @@ void cDuctSegmentStriated::step(double current_time, double timestep) {
     Array1Nd testx(1, get_nvars());
     Array1Nd testxdot(1, get_nvars());
     gather_x(testx);
+
+#ifdef DEBUGFODELOADX
+    // load x from HDF5 file for debugging
+    h5pp::File hxfile("testx.h5", h5pp::FilePermission::READONLY);
+    Eigen::VectorXf testxf = hxfile.readDataset<Eigen::VectorXf>("x");
+    testx = testxf.cast<double>();
+    distribute_x(testx);
+    gather_x(testx);
+#endif
+
     f_ODE(testx, testxdot);
     std::ofstream xfile("xdump.txt");
     xfile << std::fixed << std::setprecision(15);

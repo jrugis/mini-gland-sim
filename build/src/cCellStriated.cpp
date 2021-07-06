@@ -355,6 +355,11 @@ void cCellStriated::f_ODE(const dss::ArrayNFC &x_l, const dss::lumen_prop_t &lum
   V_A_Na = 1e3*R*T/F_const*(Na_A/Na_C).log();
   Array1Nd I_ENaC(1, n_loc_int);
   I_ENaC = G_ENaC * api_area_int * (V_A - V_A_Na);
+  out << "DEBUG I_ENac" << std::endl;
+  out << "  G_ENaC = " << G_ENaC << std::endl;
+  out << "  A_A_int = " << api_area_int << std::endl;
+  out << "  V_A = " << V_A << std::endl;
+  out << "  V_A_Na = " << V_A_Na << std::endl;
 
   // % NaKATPase, NKA 
   // J_NKA_A = A_A_int .* alpha_NKA_A * r_NKA .*(K_A.^2.*Na_C.^3)./(K_A.^2+beta_NKA*Na_C.^3); % 10^-12 mol/s [1,n_loc_int]
@@ -458,8 +463,8 @@ void cCellStriated::f_ODE(const dss::ArrayNFC &x_l, const dss::lumen_prop_t &lum
   out << "V_B_K:     %.8d mV " <<  V_B_K << std::endl;
   out << "V_A_Cl:    %.8d mV " <<  V_A_Cl << std::endl;
   out << "V_A_Na:    %.8d mV " <<  V_A_Na << std::endl;
-  out << "V_A:       %.8d mV " <<  x_c(0,Eigen::all) << std::endl;
-  out << "V_B:       %.8d mV " <<  x_c(1,Eigen::all) << std::endl;
+  out << "V_A:       %.8d mV " <<  x_c(0,0) << std::endl;
+  out << "V_B:       %.8d mV " <<  x_c(0,1) << std::endl;
   out << "V_T:       %.8d mV " <<  V_T << std::endl;
   out << " " << std::endl;
   out << "V_P_Na:    %.8d mV " <<  V_P_Na << std::endl;
