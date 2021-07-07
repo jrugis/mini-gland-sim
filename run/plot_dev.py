@@ -30,12 +30,12 @@ intpos = segment[:-1]
 print("segment shape", intpos.shape)
 
 # attributes for x array
-for key in results['d1s1/x'].attrs.keys():
-    print(f"{key}: {results['d1s1/x'].attrs[key]}")
-v_c = results['d1s1/x'].attrs['cellular variables']
-v_l = results['d1s1/x'].attrs['lumenal variables']
-n_c = results['d1s1/x'].attrs['cells']
-n_l = results['d1s1/x'].attrs['lumen segments']
+for key in results['d1s1'].attrs.keys():
+    print(f"{key}: {results['d1s1'].attrs[key]}")
+v_c = results['d1s1'].attrs['number of cellular variables']
+v_l = results['d1s1'].attrs['number of lumenal variables']
+n_c = results['d1s1'].attrs['number of cells']
+n_l = results['d1s1'].attrs['number of lumen segments']
 
 # time values
 dt = results.attrs["output time interval"]
