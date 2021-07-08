@@ -12,6 +12,9 @@ ml SUNDIALS/5.7.0-gimkl-2020a
 ml h5pp/1.9.0-gimpi-2020a
 ml Python/3.8.2-gimkl-2020a
 
+export OMP_NESTED=true
+echo "Num threads: ${OMP_NUM_THREADS}"
+
 ./mini-gland-sim
 
 python plot_dev.py
