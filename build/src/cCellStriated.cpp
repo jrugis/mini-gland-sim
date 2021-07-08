@@ -38,7 +38,7 @@ cCellStriated::cCellStriated(cDuctSegment* parent, int cell_number) : cCell(pare
     }
   }
   mean_z = sum_z / (nfaces * 3);  // TODO: double check, could be counting vertices multiple times??
-  out << "<CellStriated>: centroid_z = " << mean_z << std::endl;
+  out << "<CellStriated> centroid_z = " << mean_z << std::endl;
 }
 
 void cCellStriated::init(dss::parameters_t &parent_P) {
@@ -84,7 +84,7 @@ void cCellStriated::process_mesh_info(std::vector<double>& lumen_segment) {
   std::unordered_set<int> loc_int_set(api_lumen_conn.begin(), api_lumen_conn.end());
   loc_int = std::vector<int>(loc_int_set.begin(), loc_int_set.end());
   std::sort(loc_int.begin(), loc_int.end());
-  out << loc_int.size() <<  " unique lumen segments for this cell:";
+  out << "<CellStriated> " << loc_int.size() <<  " unique lumen segments for this cell:";
   for (auto const &e: loc_int) {
     out << " " << e;
   }
@@ -99,7 +99,7 @@ void cCellStriated::process_mesh_info(std::vector<double>& lumen_segment) {
     int idx = std::distance(loc_int.begin(), it);
     api_area_int(0, idx) += api_face_area[i];
   }
-  out << "lumen segment areas:";
+  out << "<CellStriated> lumen segment areas:";
   for (auto const &e: api_area_int.reshaped()) {
     out << "  " << e;
   }

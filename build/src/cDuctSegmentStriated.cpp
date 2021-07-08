@@ -167,7 +167,7 @@ cDuctSegmentStriated::~cDuctSegmentStriated() {
 }
 
 void cDuctSegmentStriated::process_mesh_info(double L) {
-  out << "cDuctSegmentStriated> process mesh info..." << std::endl;
+  out << "<DuctSegmentStriated> process mesh info..." << std::endl;
   lumen_prop.L = L;  // discretisation interval
   // min/max z coord (was read from mesh, changed to match matlab)
 //  double lumen_start = std::min(vertex_out(2), vertex_in(2));
@@ -413,7 +413,7 @@ int cDuctSegmentStriated::get_nvars() {
 }
 
 void cDuctSegmentStriated::step(double current_time, double timestep) {
-  out << "<DuctSegmentStriated> step - threads in use: " << omp_get_num_threads() << std::endl;
+//  out << "<DuctSegmentStriated> step - threads in use: " << omp_get_num_threads() << std::endl;
 
   // Testing: call f_ODE once
   if (stepnum == 0) {
