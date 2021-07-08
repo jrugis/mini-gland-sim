@@ -13,6 +13,7 @@
 #include <tuple>
 #include <unordered_map>
 #include <vector>
+#include "inih/cpp/INIReader.h"
 
 class cDuctSegment;
 
@@ -27,7 +28,8 @@ class cMiniGlandDuct {
   private:
   std::string id;
   std::ofstream out;                         // the runtime diagnostic file for this object
-  std::unordered_map<std::string, double> p; // the model parameters
+//  std::unordered_map<std::string, double> p; // the model parameters
+  INIReader p;
 
   std::vector<cDuctSegment*> segments;             // the duct segment objects
   std::vector<std::tuple<int, int, int>> seg_data; // vertex_in, vertex_out, seg_type for each duct segment

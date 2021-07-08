@@ -32,6 +32,7 @@ CPP_FLAGS =  $(CPP_DEFS) -m64 -O3 -march=native -mtune=native -Wall -Wpedantic -
 
 ###########################################################################################
 ## NOTE: uncomment lines for ONE platform
+CPP_INCLUDES = -I$(SRC)/inih/cpp
 #CPP_INCLUDES = -I/usr/include  # mahuika 
 #CPP_INCLUDES = -I/usr/local/include/eigen3 -I/usr/local/Cellar/boost/1.75.0_2/include -I/usr/local/Cellar/boost/1.75.0_2/lib # iMac
 
@@ -43,10 +44,16 @@ CPP_LIBS = -lstdc++ -lstdc++fs -lm -lsundials_cvode -lspdlog -lfmt -lhdf5_hl -lh
 ###########################################################################################
 
 EXE = ../run/mini-gland-sim
-OBJS = main.o utils.o cMiniGlandDuct.o cDuctSegment.o  cDuctSegmentAcinus.o cDuctSegmentIntercalated.o cDuctSegmentStriated.o cCell.o cCellAcinus.o cCellIntercalated.o cCellStriated.o cCVode.o #cLSODA.o LSODA.o
+OBJS = main.o utils.o cMiniGlandDuct.o cDuctSegment.o cDuctSegmentAcinus.o cDuctSegmentIntercalated.o cDuctSegmentStriated.o cCell.o cCellAcinus.o cCellIntercalated.o cCellStriated.o cCVode.o ini.o INIReader.o
 SRC = ./src
 
 all: $(EXE)
+
+ini.o: $(SRC)/inih/ini.c $(SRC)/inih/ini.h
+	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
+
+INIReader.o: $(SRC)/inih/cpp/INIReader.cpp $(SRC)/inih/cpp/INIReader.h $(SRC)/inih/ini.h
+	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 main.o: $(SRC)/main.cpp $(SRC)/global_defs.hpp $(SRC)/cMiniGlandDuct.hpp $(SRC)/githash.h
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<

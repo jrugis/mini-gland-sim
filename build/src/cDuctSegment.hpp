@@ -13,6 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "inih/cpp/INIReader.h"
 #include "global_defs.hpp"
 
 class cMiniGlandDuct;
@@ -32,7 +33,8 @@ class cDuctSegment {
   cMiniGlandDuct* parent;
   std::string id;
   std::ofstream out;                         // runtime diagnostic file for this object
-  std::unordered_map<std::string, double> p; // the model parameters
+//  std::unordered_map<std::string, double> p; // the model parameters
+  INIReader p;
 
   int seg_number;                        // this segment number
   int seg_type;                          // type of this duct segment
