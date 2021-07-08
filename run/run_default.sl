@@ -15,3 +15,4 @@ ml Python/3.8.2-gimkl-2020a
 ./mini-gland-sim
 
 python plot_dev.py
+python plot_electroneutrality.py

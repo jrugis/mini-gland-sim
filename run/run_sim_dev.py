@@ -56,7 +56,7 @@ os.system("cp " + run_dir + "/mini-gland-sim .")
 os.system("chmod 770 mini-gland-sim")
 os.system("cp " + run_dir + "/" + mesh + " m.ply")
 os.system("cp " + run_dir + "/" + parms + " p.dat")
-os.system("cp " + run_dir + "/plot_dev.py .")
+os.system("cp " + run_dir + "/plot_*.py .")
 os.system("cp " + run_dir + "/" + slurm + " run.sl")
 
 # run the executable
