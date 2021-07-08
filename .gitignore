@@ -5,6 +5,7 @@ mini-gland-sim
 my*
 *.ply
 !mini-gland.ply
+githash.h
 
 #----------------------------------
 # Mac excludes

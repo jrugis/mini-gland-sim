@@ -175,7 +175,7 @@ void cCVode::PrintFinalStatsBrief()
   check_retval(&retval, "CVodeGetNumRhsEvals", 1);
 
   out << "<cCVode> solver statistics: ";
-  out << "num_steps = " << nfe << " num_func_calls = " << nfe << std::endl;
+  out << "num_steps = " << nst << " num_func_calls = " << nfe << std::endl;
 }
 
 void cCVode::PrintFinalStatsDetailed()
@@ -205,7 +205,7 @@ void cCVode::PrintFinalStatsDetailed()
   check_retval(&retval, "CVodeGetNumGEvals", 1);
 
   out << "Final Statistics:" << std::endl;
-  out << "nst = " << nfe << " nfe = " << nfe << " nsetups = " << nsetups << std::endl;
+  out << "nst = " << nst << " nfe = " << nfe << " nsetups = " << nsetups << std::endl;
   out << "nfeLS = " << nfeLS << " nje = " << nje << " nni = " << nni << std::endl;
   out << "ncfn = " << ncfn << " netf = " << netf << " nge = " << nge << std::endl;
 }

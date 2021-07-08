@@ -66,6 +66,7 @@ class cCellStriated : public cCell {
   const double get_min_z() { return min_z; }
   const double get_max_z() { return max_z; }
   const double get_mean_z() { return mean_z; }
+  const double compute_electroneutrality_check();
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW   // required when using fixed-size vectorizable Eigen object(s)
 
   private:

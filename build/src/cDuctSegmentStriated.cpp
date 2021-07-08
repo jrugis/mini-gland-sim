@@ -13,15 +13,22 @@
 #include <algorithm>
 #include <limits>
 #include <numeric>
+#include <optional>
 #include <omp.h>
 #include <nvector/nvector_serial.h>    /* access to serial N_Vector            */
 #include <sundials/sundials_types.h>   /* defs. of realtype, sunindextype      */
+#include "h5pp/h5pp.h"
 
 #include "cCell.hpp"
 #include "cDuctSegment.hpp"
 #include "cDuctSegmentStriated.hpp"
 #include "cCellStriated.hpp"
 #include "cCVode.hpp"
+#include "utils.hpp"
+
+//#define DEBUGFODE
+//#define DEBUGFODELOADX
+//#define DEBUGWRITEXDOT
 
 using namespace dss;
 
@@ -37,6 +44,7 @@ static int ode_func(realtype t, N_Vector y, N_Vector ydot, void* user_data)
   Array1Nd ydotmat(1, nvars);
 
   // copy input from sundials data structure to array for calling secretion function
+  #pragma omp parallel for
   for (int i = 0; i < nvars; i++) { 
     ymat(i) = NV_Ith_S(y, i);
   }
@@ -45,6 +53,7 @@ static int ode_func(realtype t, N_Vector y, N_Vector ydot, void* user_data)
   pt_dss->f_ODE(ymat, ydotmat);
 
   // copy result back into sundials data structure
+  #pragma omp parallel for
   for (int i = 0; i < nvars; i++) {
     NV_Ith_S(ydot, i) = ydotmat(i);
   }
@@ -52,13 +61,10 @@ static int ode_func(realtype t, N_Vector y, N_Vector ydot, void* user_data)
   return (0);
 }
 
-cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_number) : cDuctSegment(_parent, _seg_number), stepnum(0) {
+cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_number) : cDuctSegment(_parent, _seg_number), stepnum(0), outputnum(0) {
   out << "<DuctSegmentStriated> initialiser" << std::endl;
 
   // Model input setup (TODO: should these be read from parameter file? or from another class...)
-
-  // open the results file
-  results_file.open(id + "_results.bin", std::ios::binary);
 
   double L_int = 1;  // um length of lumen discretisation interval
   PSflow = 100 / 10;  // um3/s volumetric primary saliva flow rate
@@ -88,9 +94,8 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   setup_IC();
 
   // setup the cells too
-  std::ofstream centroid_file(id + "_zcentroid.dat");
-  centroid_file << std::scientific << std::setprecision(16);
   int ncells = cells.size();
+  Eigen::VectorXf cellz(ncells);
   for (int i = 0; i < ncells; i++) {
     // have to cast to cCellStriated to get methods defined only on that class
     cCellStriated *cell_striated = static_cast<cCellStriated*>(cells[i]);
@@ -102,18 +107,59 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
     cell_striated->process_mesh_info(lumen_prop.segment);
 
     // store centroid z coordinate for postprocessing
-    centroid_file << cell_striated->get_mean_z() << std::endl;
+    cellz(i) = static_cast<float>(cell_striated->get_mean_z());
   }
-  centroid_file.close();
 
   // allocate solver vectors
-  x.resize(1, LUMENALCOUNT*lumen_prop.n_int + CELLULARCOUNT*cells.size());
-  dxdt.resize(1, LUMENALCOUNT*lumen_prop.n_int + CELLULARCOUNT*cells.size());
+  int num_var = LUMENALCOUNT*lumen_prop.n_int + CELLULARCOUNT*cells.size();
+  x.resize(1, num_var);
+  dxdt.resize(1, num_var);
   gather_x(x);
 
   // setting up the solver
   solver = new cCVode(out, p.at("odeSolverAbsTol"), p.at("odeSolverRelTol"));
   solver->init(ode_func, x, static_cast<void*>(this));
+
+  // create hdf5 dataset
+  int num_steps = std::ceil(p.at("totalT") / (p.at("delT") * p.at("Tstride"))) + 1;
+  out << "<DuctSegmentStriated> output data size: " << num_steps << " x " << num_var << std::endl;
+  resultsh5_filename = id + "_results.h5";
+  resultsh5_dataset = id + "/x";
+
+  // initialise the file
+  h5pp::File resultsh5(resultsh5_filename, h5pp::FilePermission::REPLACE);
+
+  // create the dataset for x (and xdot for debugging)
+  Eigen::VectorXf xf(num_var);
+  resultsh5.createDataset(xf, resultsh5_dataset, {num_steps, num_var});
+#ifdef DEBUGWRITEXDOT
+  resultsh5.createDataset(xf, id + "/xdot", {num_steps, num_var});
+#endif
+
+  // create dataset for electroneutrality
+  Eigen::VectorXf ef(ncells);
+  resultsh5.createDataset(ef, id + "/electroneutrality", {num_steps, ncells});
+
+  // store some attributes (output time interval, lumen vars, etc)
+  resultsh5.writeAttribute(LUMENALCOUNT, "number of lumenal variables", id);
+  resultsh5.writeAttribute(lumen_prop.n_int, "number of lumen segments", id);
+  resultsh5.writeAttribute(CELLULARCOUNT, "number of cellular variables", id);
+  resultsh5.writeAttribute(static_cast<int>(cells.size()), "number of cells", id);
+  double outputdt = p.at("delT") * p.at("Tstride");
+  resultsh5.writeAttribute(outputdt, "output time interval", "/");
+
+  // store cell centroid z components for postprocessing
+  resultsh5.writeDataset(cellz, id + "/zcells");
+
+  // store lumen segments
+  Eigen::VectorXf segf(lumen_prop.n_int + 1);
+  for (int i = 0; i < lumen_prop.n_int + 1; i++) {
+    segf(i) = static_cast<float>(lumen_prop.segment[i]);
+  }
+  resultsh5.writeDataset(segf, id + "/segment");
+
+  // store t=0
+  save_results();
 }
 
 cDuctSegmentStriated::~cDuctSegmentStriated() {
@@ -240,7 +286,8 @@ void cDuctSegmentStriated::distribute_x(const Array1Nd &x_in) {
   int n_l = lumen_prop.n_int;
   for (int i = 0; i < n_c; i++) {
     cCellStriated *cell_striated = static_cast<cCellStriated*>(cells[i]);
-    cell_striated->x_c = x_in(Eigen::seq(i*CELLULARCOUNT, (i+1)*CELLULARCOUNT-1));
+    int start = i * CELLULARCOUNT;
+    cell_striated->x_c.row(0) = x_in(0, Eigen::seq(start, start+CELLULARCOUNT-1));
   }
   int s_l = CELLULARCOUNT * n_c;
   for (int i = 0; i < n_l; i++) {
@@ -347,6 +394,15 @@ void cDuctSegmentStriated::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
     int idx = s_l + i * LUMENALCOUNT;
     dxdt(0, Eigen::seq(idx, idx+LUMENALCOUNT-1)) = dxldt.col(i);
   }
+  
+#ifdef DEBUGFODE
+    out << std::scientific << std::setprecision(8);
+    out << "================ DEBUG =================" << std::endl;
+    out << "initial P.S. flow rate: %2.2f  um3 " << (v_up(0)*A_L) << std::endl;
+    out << "final P.S. flow rate:   %2.2f  um3 " << (v(Eigen::last)*A_L) << std::endl;
+    out << "percentage:             %2.2f  " << (v(Eigen::last)-v_up(0))/v_up(0)*100 << std::endl;
+    out << "================ END DEBUG =================" << std::endl;
+#endif
 }
 
 int cDuctSegmentStriated::get_nvars() {
@@ -357,16 +413,24 @@ int cDuctSegmentStriated::get_nvars() {
 }
 
 void cDuctSegmentStriated::step(double current_time, double timestep) {
-  // combine cells fluid flow  --  TO DO
-  // ....
-
   out << "<DuctSegmentStriated> step - threads in use: " << omp_get_num_threads() << std::endl;
 
   // Testing: call f_ODE once
   if (stepnum == 0) {
+    out << "writing x and xdot for debugging" << std::endl;
     Array1Nd testx(1, get_nvars());
     Array1Nd testxdot(1, get_nvars());
     gather_x(testx);
+
+#ifdef DEBUGFODELOADX
+    // load x from HDF5 file for debugging
+    h5pp::File hxfile("testx.h5", h5pp::FilePermission::READONLY);
+    Eigen::VectorXf testxf = hxfile.readDataset<Eigen::VectorXf>("x");
+    testx = testxf.cast<double>();
+    distribute_x(testx);
+    gather_x(testx);
+#endif
+
     f_ODE(testx, testxdot);
     std::ofstream xfile("xdump.txt");
     xfile << std::fixed << std::setprecision(15);
@@ -376,6 +440,10 @@ void cDuctSegmentStriated::step(double current_time, double timestep) {
     xdotfile << std::fixed << std::setprecision(15);
     xdotfile << testxdot.transpose();
     xdotfile.close();
+
+#ifdef DEBUGFODE
+    utils::fatal_error("stopping for debugging", out);
+#endif
   }
   // End testing
 
@@ -387,15 +455,35 @@ void cDuctSegmentStriated::step(double current_time, double timestep) {
   // store results
   stepnum++;
   if (stepnum % int(p.at("Tstride")) == 0) {
-    save_results(current_time + timestep);
+    save_results();
   }
 }
 
-void cDuctSegmentStriated::save_results(double result_time) {
-  int nv = lumen_prop.n_int * LUMENALCOUNT + cells.size() * CELLULARCOUNT;
-  float* fbuf = new float[nv+1];  // +1 for storing time in first column
-  fbuf[0] = result_time;
-  for (int n = 0; n < nv; n++) fbuf[n+1] = x[n]; // convert to float for reduced file size
-  results_file.write(reinterpret_cast<char*>(fbuf), (nv+1) * sizeof(float));
-  delete [] fbuf;
+void cDuctSegmentStriated::save_results() {
+  // append to variable in HDF5 file...
+  h5pp::File resultsh5(resultsh5_filename, h5pp::FilePermission::READWRITE);
+  int nv = get_nvars();
+  Eigen::VectorXf xf(nv);
+  xf = x.cast<float>();
+  resultsh5.writeHyperslab(xf, resultsh5_dataset, h5pp::Hyperslab({outputnum, 0}, {1, nv}));
+
+#ifdef DEBUGWRITEXDOT
+  // temporarily outputting xdot for debugging
+  Array1Nd xdot(1, nv);
+  f_ODE(x, xdot);
+  Eigen::VectorXf xdotf(nv);
+  xdotf = xdot.cast<float>();
+  resultsh5.writeHyperslab(xdotf, id + "/xdot", h5pp::Hyperslab({outputnum, 0}, {1, nv}));
+#endif
+
+  // outputting electroneutrality check
+  int nc = cells.size();
+  Eigen::VectorXf ef(nc);
+  for (int i = 0; i < nc; i++) {
+    double cell_e = static_cast<cCellStriated*>(cells[i])->compute_electroneutrality_check();
+    ef(i) = static_cast<float>(cell_e);
+  }
+  resultsh5.writeHyperslab(ef, id + "/electroneutrality", h5pp::Hyperslab({outputnum, 0}, {1, nc}));
+
+  outputnum++;
 }

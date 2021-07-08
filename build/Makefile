@@ -13,7 +13,7 @@
 ##
 ###########################################################################################
 ## C++
-CPP_DEFS = -std=c++17 -fopenmp # -DNDEBUG
+CPP_DEFS = -std=c++17 -fopenmp -DNDEBUG
 CPP = gcc
 
 ###########################################################################################
@@ -38,7 +38,7 @@ CPP_FLAGS =  $(CPP_DEFS) -m64 -O3 -march=native -mtune=native -Wall -Wpedantic -
 #CPP_LIBS = -lsundials_cvodes
 #CPP_LIBS = -l/usr/local/Cellar/boost/1.75.0_2/lib  # iMac
 #CPP_LIBS = -lboost_system
-CPP_LIBS = -lstdc++ -lm -lsundials_cvode
+CPP_LIBS = -lstdc++ -lstdc++fs -lm -lsundials_cvode -lspdlog -lfmt -lhdf5_hl -lhdf5
 
 ###########################################################################################
 
@@ -48,7 +48,7 @@ SRC = ./src
 
 all: $(EXE)
 
-main.o: $(SRC)/main.cpp $(SRC)/global_defs.hpp $(SRC)/cMiniGlandDuct.hpp
+main.o: $(SRC)/main.cpp $(SRC)/global_defs.hpp $(SRC)/cMiniGlandDuct.hpp $(SRC)/githash.h
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 utils.o: $(SRC)/utils.cpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
@@ -90,6 +90,12 @@ LSODA.o: $(SRC)/libsoda/LSODA.cpp $(SRC)/libsoda/LSODA.h $(SRC)/libsoda/helper.h
 cLSODA.o: $(SRC)/cLSODA.cpp $(SRC)/cLSODA.hpp $(SRC)/libsoda/LSODA.h
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
+.PHONY: $(SRC)/githash.h
+$(SRC)/githash.h: ../.git/HEAD ../.git/index
+	echo "#ifndef GIT_HASH" > $@ && \
+	echo "#define GIT_HASH \"$(shell git describe --tags --always --dirty)\"" >> $@ && \
+	echo "#endif" >> $@
+
 #cLumen.o: $(SRC)/cLumen.cpp $(SRC)/cLumen.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp 
 #	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
@@ -112,4 +118,4 @@ $(EXE): $(OBJS)
 	$(CPP) $(CPP_FLAGS) $(CPP_LIBS) -o $@ $+
 
 clean:
-	rm *.o
+	rm -f *.o githash.h

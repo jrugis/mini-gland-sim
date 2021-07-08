@@ -15,6 +15,7 @@
 #include <time.h>
 #include <unistd.h>
 
+#include "githash.h"
 #include "cMiniGlandDuct.hpp"
 
 #define TEMP_SIZE 40
@@ -27,6 +28,9 @@ int main(int argc, char** args)
   int duration;
 
   clock_gettime(CLOCK_REALTIME, &start);
+
+  // report the git hash
+  std::cout << "<main> git hash: " << GIT_HASH << std::endl;
 
   // get the hostname
   char temp[TEMP_SIZE];

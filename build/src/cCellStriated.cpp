@@ -16,6 +16,8 @@
 #include "cCell.hpp"
 #include "cCellStriated.hpp"
 
+//#define DEBUGFODE
+
 using namespace S;
 using namespace dss;
 
@@ -429,4 +431,55 @@ void cCellStriated::f_ODE(const dss::ArrayNFC &x_l, const dss::lumen_prop_t &lum
   // % CO_A mM/s
   // dxldt(6,loc_int) = dxldt(6,loc_int) + J_CDF_A./w_A - J_buf_A;
   dxldt(5,loc_int) = J_CDF_A/w_A - J_buf_A;
+
+#ifdef DEBUGFODE
+  out << std::scientific << std::setprecision(8);
+  out << "================ DEBUG =================" << std::endl;
+  out << "I_ENaC:       %.8d nA  " << I_ENaC*1e-6 << std::endl;
+  out << "I_BK:         %.8d nA  " << I_BK*1e-6 << std::endl;
+  out << "I_K_B:        %.8d nA  " << I_K_B*1e-6 << std::endl;
+  out << "J_NKA_A:      %.8d nA  " << J_NKA_A*F_const*1e-3 << std::endl;
+  out << "J_NKA_B:      %.8d nA  " << J_NKA_B*F_const*1e-3 << std::endl;
+  out << "I_CFTR:       %.8d nA  " << I_CFTR*1e-6 << std::endl;
+  out << "I_CFTR_B:     %.8d nA  " << I_CFTR_B*1e-6 << std::endl;
+  out << "J_AE2_A:      %.8d nA  " << J_AE2_A*F_const*1e-9 << std::endl;
+  out << "J_AE2_B:      %.8d nA  " << J_AE2_B*F_const*1e-9 << std::endl;
+  out << "J_NBC:        %.8d nA  " << J_NBC*F_const*1e-9 << std::endl;
+  out << "J_NHE_A:      %.8d nA  " << J_NHE_A*F_const*1e-9 << std::endl;
+  out << "J_NHE_B:      %.8d nA  " << J_NHE_B*F_const*1e-9 << std::endl;
+  out << "J_CDF_A:      %.8d nA  " << J_CDF_A*F_const*1e-9 << std::endl;
+  out << "J_CDF_B:      %.8d nA  " << J_CDF_B*F_const*1e-9 << std::endl;
+  out << "J_buf_A:      %.8d nA  " << J_buf_A*F_const*w_A*1e-9 << std::endl;
+  out << "J_buf_C:      %.8d nA  " << J_buf_C*F_const*1e-9 << std::endl;
+  out << "J_A:          %.8d nA  " << J_A << std::endl;
+  out << "J_B:          %.8d nA  " << J_B << std::endl;
+  out << " " << std::endl;
+  out << "V_A_K:     %.8d mV " <<  V_A_K << std::endl;
+  out << "V_B_K:     %.8d mV " <<  V_B_K << std::endl;
+  out << "V_A_Cl:    %.8d mV " <<  V_A_Cl << std::endl;
+  out << "V_A_Na:    %.8d mV " <<  V_A_Na << std::endl;
+  out << "V_A:       %.8d mV " <<  x_c(0,0) << std::endl;
+  out << "V_B:       %.8d mV " <<  x_c(0,1) << std::endl;
+  out << "V_T:       %.8d mV " <<  V_T << std::endl;
+  out << " " << std::endl;
+  out << "V_P_Na:    %.8d mV " <<  V_P_Na << std::endl;
+  out << "V_P_K:     %.8d mV " <<  V_P_K << std::endl;
+  out << "V_P_Cl:    %.8d mV " <<  V_P_Cl << std::endl;
+  out << "I_P_Na:    %.8d nA " << I_P_Na*1e-6 << std::endl;
+  out << "I_P_K:     %.8d nA " << I_P_K*1e-6 << std::endl;
+  out << "I_P_Cl:    %.8d nA " << I_P_Cl*1e-6 << std::endl;
+  out << " " << std::endl;
+  out << "Na flux A: %.8d nA " << I_ENaC*1e-6 - J_NHE_A*F_const*1e-9 + I_P_Na*1e-6 + 3*J_NKA_A*1e-3*F_const << std::endl;
+  out << "K flux A:  %.8d nA " << I_BK*1e-6 + I_P_K*1e-6 - 2*J_NKA_A*1e-3*F_const << std::endl;
+  out << "Cl flux A: %.8d nA " <<  I_P_Cl*1e-6 + I_CFTR*1e-6 + J_AE2_A*F_const*1e-9 << std::endl;
+  out << "HC flux A: %.8d nA " <<  I_CFTR_B*1e-6 - J_AE2_A*F_const*1e-9 - J_buf_A*F_const*w_A*1e-9 << std::endl;
+  out << "================ END DEBUG =================" << std::endl;
+#endif
+}
+
+const double cCellStriated::compute_electroneutrality_check() {
+  // in mol
+  double e = (x_c(3) + x_c(4) - x_c(5) - x_c(6) + x_c(7)) * x_c(2) * 1e-18 - 1.5 * P.chi_C;
+
+  return e;
 }

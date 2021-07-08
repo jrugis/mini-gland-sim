@@ -20,9 +20,9 @@ def make_label(s):
 print("mini_gland_sim")
 run_dir = os.getcwd()
 
-if(len(sys.argv) < 3):
+if(len(sys.argv) < 4):
   print("error: missing argument(s)")
-  print("usage: python run_sim.py <mesh-file> <parameter-file>")
+  print("usage: python run_sim.py <mesh-file> <parameter-file> <slurm-script>")
   quit()
 
 mesh = sys.argv[1] # mesh file
@@ -33,6 +33,11 @@ if not os.path.exists(run_dir + "/" + mesh):
 parms = sys.argv[2] # parameters file
 if not os.path.exists(run_dir + "/" + parms):
   print("no such parameter file: " + parms)
+  quit()
+
+slurm = sys.argv[3] # Slurm script
+if not os.path.exists(run_dir + "/" + slurm):
+  print("no such Slurm script: " + slurm)
   quit()
 
 # create the top level results directory
@@ -51,9 +56,12 @@ os.system("cp " + run_dir + "/mini-gland-sim .")
 os.system("chmod 770 mini-gland-sim")
 os.system("cp " + run_dir + "/" + mesh + " m.ply")
 os.system("cp " + run_dir + "/" + parms + " p.dat")
+os.system("cp " + run_dir + "/plot_*.py .")
+os.system("cp " + run_dir + "/" + slurm + " run.sl")
 
 # run the executable
-os.system("./mini-gland-sim")
+#os.system("./mini-gland-sim")
+os.system("sbatch run.sl")
 
 # go back to top level
 os.chdir(run_dir)
