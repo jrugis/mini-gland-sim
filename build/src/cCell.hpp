@@ -12,6 +12,7 @@
 #include <string>
 #include <unordered_map>
 
+#include "inih/cpp/INIReader.h"
 #include "global_defs.hpp"
 
 class cDuctSegment;
@@ -33,7 +34,7 @@ class cCell {
   cDuctSegment* parent;
   std::string id;
   std::ofstream out;                         // runtime diagnostic file for this object
-  std::unordered_map<std::string, double> p; // the model parameters
+  INIReader *p;  // model parameters
 
   int cell_number;           // this cell number
   int nverts, nfaces, ntets; // number of vertices, faces, tets for this cell

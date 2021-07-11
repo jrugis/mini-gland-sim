@@ -15,7 +15,7 @@
 #include <string>
 #include <limits>
 
-#define PARAMETER_FILE_NAME "p.dat"
+#define PARAMETER_FILE_NAME "p.ini"
 #define MESH_FILE_NAME "m.ply"
 #define DIAGNOSTIC_FILE_EXTENSION ".out"
 
