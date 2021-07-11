@@ -33,8 +33,7 @@ class cDuctSegment {
   cMiniGlandDuct* parent;
   std::string id;
   std::ofstream out;                         // runtime diagnostic file for this object
-//  std::unordered_map<std::string, double> p; // the model parameters
-  INIReader p;
+  INIReader* p;  // model parameters
 
   int seg_number;                        // this segment number
   int seg_type;                          // type of this duct segment

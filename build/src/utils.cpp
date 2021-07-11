@@ -58,6 +58,42 @@ void utils::fatal_error(const std::string msg, std::ofstream& out)
   exit(1);
 }
 
+double utils::get_parameter_real(INIReader* ini, const std::string& section, const std::string& name, std::ofstream& out) {
+  double value = ini->GetReal(section, name, PARAMETER_DEFAULT_REAL);
+  assert_parameter_set(value, std::string("Parameter not set in input file: ") + section + std::string("::") + name, out);
+  return value;
+}
+
+int utils::get_parameter_integer(INIReader* ini, const std::string& section, const std::string& name, std::ofstream& out) {
+  int value = ini->GetInteger(section, name, PARAMETER_DEFAULT_INTEGER);
+  assert_parameter_set(value, std::string("Parameter not set in input file: ") + section + std::string("::") + name, out);
+  return value;
+}
+
+std::string utils::get_parameter_string(INIReader* ini, const std::string& section, const std::string& name, std::ofstream& out) {
+  std::string value = ini->Get(section, name, PARAMETER_DEFAULT_STRING);
+  assert_parameter_set(value, std::string("Parameter not set in input file: ") + section + std::string("::") + name, out);
+  return value;
+}
+
+void utils::assert_parameter_set(const double value, const std::string& error_msg, std::ofstream& out) {
+  if (value == PARAMETER_DEFAULT_REAL) {
+    fatal_error(error_msg, out);
+  }
+}
+
+void utils::assert_parameter_set(const int value, const std::string& error_msg, std::ofstream& out) {
+  if (value == PARAMETER_DEFAULT_INTEGER) {
+    fatal_error(error_msg, out);
+  }
+}
+
+void utils::assert_parameter_set(const std::string& value, const std::string& error_msg, std::ofstream& out) {
+  if (value == PARAMETER_DEFAULT_STRING) {
+    fatal_error(error_msg, out);
+  }
+}
+
 // NOTE: used by each of the acinus, lumen and cell objects
 void utils::get_parameters(const std::string file_name, std::unordered_map<std::string, double>& p, std::ofstream& out)
 {

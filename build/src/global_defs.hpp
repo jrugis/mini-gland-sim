@@ -12,7 +12,8 @@
 #include <Eigen/Dense>
 #include <Eigen/Sparse>
 //#include <cmath>
-//#include <string>
+#include <string>
+#include <limits>
 
 #define PARAMETER_FILE_NAME "p.dat"
 #define MESH_FILE_NAME "m.ply"
@@ -48,6 +49,12 @@ typedef Eigen::Array<double, 1, Eigen::Dynamic> Array1Nd;
 #define F_const 96485.3329
 #define V_w 18e12
 const double RTF = 1000.0 * R * T / F_const;
+
+//************************************************************************
+// parameter constants
+const double PARAMETER_DEFAULT_REAL = std::numeric_limits<double>::lowest();
+const int PARAMETER_DEFAULT_INTEGER = std::numeric_limits<int>::lowest();
+const std::string PARAMETER_DEFAULT_STRING = "<UNSET>";
 
 //************************************************************************
 //************************************************************************

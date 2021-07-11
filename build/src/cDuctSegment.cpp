@@ -20,7 +20,7 @@ cDuctSegment::cDuctSegment(cMiniGlandDuct* _parent, int _seg_number) : parent(_p
 {
   id = parent->id + "s" + std::to_string(seg_number + 1); // NOTE: one based segment id
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
-  p = parent->p; // the parameters map
+  p = parent->p; // the parameters INIReader object
 
   // get the duct segment mesh data
   std::ifstream mesh_file;
