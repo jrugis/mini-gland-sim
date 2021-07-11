@@ -58,6 +58,7 @@ void utils::fatal_error(const std::string msg, std::ofstream& out)
   exit(1);
 }
 
+// utility functions for getting parameters and at the same time checking they were actually set in the ini file
 double utils::get_parameter_real(INIReader* ini, const std::string& section, const std::string& name, std::ofstream& out) {
   double value = ini->GetReal(section, name, PARAMETER_DEFAULT_REAL);
   assert_parameter_set(value, std::string("Parameter not set in input file: ") + section + std::string("::") + name, out);
@@ -92,28 +93,6 @@ void utils::assert_parameter_set(const std::string& value, const std::string& er
   if (value == PARAMETER_DEFAULT_STRING) {
     fatal_error(error_msg, out);
   }
-}
-
-// NOTE: used by each of the acinus, lumen and cell objects
-void utils::get_parameters(const std::string file_name, std::unordered_map<std::string, double>& p, std::ofstream& out)
-{
-  std::ifstream model_file(file_name); // open the model parameters file
-  std::string line;                    // file line buffer
-  std::vector<std::string> tokens;     // tokenized line
-
-  if (not model_file.is_open()) { fatal_error("the model parameters file " + file_name + " could not be opened", out); }
-  out << "<utils> reading model parameters:";
-  while (getline(model_file, line)) {
-    if (line.data()[0] == '#') continue;
-    int ci = line.find_first_of("#");      // remove comment, if any
-    if (ci > 0) line = line.substr(0, ci); //
-    line = boost::trim_right_copy(line);   // remove trailing whitespace
-    boost::split(tokens, line, boost::is_any_of(" "), boost::token_compress_on);
-    p[tokens[0]] = atof(tokens[1].c_str());
-    out << " " << tokens[0] << std::flush;
-  }
-  out << std::endl;
-  model_file.close();
 }
 
 double utils::get_distance(const Vector3d& p, const Vector3d& v, const Vector3d& w)

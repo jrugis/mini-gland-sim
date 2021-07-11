@@ -21,7 +21,6 @@ namespace utils {
   void calc_tri_centers(MatrixN3d& centers, const MatrixN3d& vertices, const MatrixN3i& triangles);
   void calc_tri_areas(MatrixN1d& areas, const MatrixN3d& vertices, const MatrixN3i& triangles);
   void fatal_error(const std::string msg, std::ofstream& out);
-  void get_parameters(const std::string file_name, std::unordered_map<std::string, double>& p, std::ofstream& out);
   void assert_parameter_set(const double value, const std::string& error_msg, std::ofstream& out);
   void assert_parameter_set(const int value, const std::string& error_msg, std::ofstream& out);
   void assert_parameter_set(const std::string& value, const std::string& error_msg, std::ofstream& out);
