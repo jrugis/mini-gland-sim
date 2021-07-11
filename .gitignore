@@ -5,6 +5,7 @@ mini-gland-sim
 my*
 *.ply
 !mini-gland.ply
+!mini_gland_slurm-20373309_1.ply
 githash.h
 
 #----------------------------------
