@@ -117,11 +117,18 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   gather_x(x);
 
   // setting up the solver
-  solver = new cCVode(out, p.at("odeSolverAbsTol"), p.at("odeSolverRelTol"));
+  double abstol = utils::get_parameter_real(p, "odeSolver", "odeSolverAbsTol", out);
+  double reltol = utils::get_parameter_real(p, "odeSolver", "odeSolverRelTol", out);
+  solver = new cCVode(out, abstol, reltol);
   solver->init(ode_func, x, static_cast<void*>(this));
 
+  // simulation time parameters
+  double totalT = utils::get_parameter_real(p, "time", "totalT", out);
+  double delT = utils::get_parameter_real(p, "time", "delT", out);
+  Tstride = utils::get_parameter_integer(p, "time", "Tstride", out);
+
   // create hdf5 dataset
-  int num_steps = std::ceil(p.at("totalT") / (p.at("delT") * p.at("Tstride"))) + 1;
+  int num_steps = std::ceil(totalT / (delT * Tstride)) + 1;
   out << "<DuctSegmentStriated> output data size: " << num_steps << " x " << num_var << std::endl;
   resultsh5_filename = id + "_results.h5";
   resultsh5_dataset = id + "/x";
@@ -145,7 +152,7 @@ cDuctSegmentStriated::cDuctSegmentStriated(cMiniGlandDuct* _parent, int _seg_num
   resultsh5.writeAttribute(lumen_prop.n_int, "number of lumen segments", id);
   resultsh5.writeAttribute(CELLULARCOUNT, "number of cellular variables", id);
   resultsh5.writeAttribute(static_cast<int>(cells.size()), "number of cells", id);
-  double outputdt = p.at("delT") * p.at("Tstride");
+  double outputdt = delT * Tstride;
   resultsh5.writeAttribute(outputdt, "output time interval", "/");
 
   // store cell centroid z components for postprocessing
@@ -207,63 +214,63 @@ void cDuctSegmentStriated::get_parameters() {
   P.PSflow = PSflow;
 
   // apical channel conductances
-  P.G_ENaC = p.at("G_ENaC");
-  P.G_CFTR = p.at("G_CFTR");
-  P.G_BK = p.at("G_BK");
+  P.G_ENaC = utils::get_parameter_real(p, "model", "G_ENaC", out);
+  P.G_CFTR = utils::get_parameter_real(p, "model", "G_CFTR", out);
+  P.G_BK = utils::get_parameter_real(p, "model", "G_BK", out);
 
   // basolateral channel conductances
-  P.G_K_B = p.at("G_K_B");
+  P.G_K_B = utils::get_parameter_real(p, "model", "G_K_B", out);
 
   // apical or basolateral transporter rates
-  P.NBC.alpha = p.at("NBC_alpha");
-  P.NBC.k5_p = p.at("NBC_k5_p"); // 1/s
-  P.NBC.k5_m = p.at("NBC_k5_m"); // 1/s
-  P.NBC.k6_p = p.at("NBC_k6_p"); // 1/s
-  P.NBC.k6_m = p.at("NBC_k6_m"); // 1/s
+  P.NBC.alpha = utils::get_parameter_real(p, "model", "NBC_alpha", out);
+  P.NBC.k5_p = utils::get_parameter_real(p, "model", "NBC_k5_p", out);
+  P.NBC.k5_m = utils::get_parameter_real(p, "model", "NBC_k5_m", out);
+  P.NBC.k6_p = utils::get_parameter_real(p, "model", "NBC_k6_p", out);
+  P.NBC.k6_m = utils::get_parameter_real(p, "model", "NBC_k6_m", out);
 
-  P.AE2.alpha_A = p.at("AE2_alpha_A");
-  P.AE2.alpha_B = p.at("AE2_alpha_B");
-  P.AE2.k3_p = p.at("AE2_k3_p"); // 1/s
-  P.AE2.k3_m = p.at("AE2_k3_m"); // 1/s
-  P.AE2.k4_p = p.at("AE2_k4_p"); // 1/s
-  P.AE2.k4_m = p.at("AE2_k4_m"); // 1/s
+  P.AE2.alpha_A = utils::get_parameter_real(p, "model", "AE2_alpha_A", out);
+  P.AE2.alpha_B = utils::get_parameter_real(p, "model", "AE2_alpha_B", out);
+  P.AE2.k3_p = utils::get_parameter_real(p, "model", "AE2_k3_p", out);
+  P.AE2.k3_m = utils::get_parameter_real(p, "model", "AE2_k3_m", out);
+  P.AE2.k4_p = utils::get_parameter_real(p, "model", "AE2_k4_p", out);
+  P.AE2.k4_m = utils::get_parameter_real(p, "model", "AE2_k4_m", out);
 
-  P.NHE.alpha_A = p.at("NHE_alpha_A");
-  P.NHE.alpha_B = p.at("NHE_alpha_B");
-  P.NHE.k1_p = p.at("NHE_k1_p"); // 1/s
-  P.NHE.k1_m = p.at("NHE_k1_m"); // 1/s
-  P.NHE.k2_p = p.at("NHE_k2_p"); // 1/s
-  P.NHE.k2_m = p.at("NHE_k2_m"); // 1/s
+  P.NHE.alpha_A = utils::get_parameter_real(p, "model", "NHE_alpha_A", out);
+  P.NHE.alpha_B = utils::get_parameter_real(p, "model", "NHE_alpha_B", out);
+  P.NHE.k1_p = utils::get_parameter_real(p, "model", "NHE_k1_p", out);
+  P.NHE.k1_m = utils::get_parameter_real(p, "model", "NHE_k1_m", out);
+  P.NHE.k2_p = utils::get_parameter_real(p, "model", "NHE_k2_p", out);
+  P.NHE.k2_m = utils::get_parameter_real(p, "model", "NHE_k2_m", out);
 
   // CO2 permeability
-  P.p_CO = p.at("p_CO"); // 1/s
+  P.p_CO = utils::get_parameter_real(p, "model", "p_CO", out);
 
   // CO2 bicarbonate buffering
-  P.buf.k_p = p.at("buf_k_p"); // /s
-  P.buf.k_m = p.at("buf_k_m"); // /mMs
+  P.buf.k_p = utils::get_parameter_real(p, "model", "buf_k_p", out);
+  P.buf.k_m = utils::get_parameter_real(p, "model", "buf_k_m", out);
 
   // sodium potassium pump rates
-  P.NKA.alpha_A = p.at("NKA_alpha_A"); // mol/m2
-  P.NKA.alpha_B = p.at("NKA_alpha_B"); // mol/m2
-  P.NKA.r = p.at("NKA_r"); // mM-3s-1
-  P.NKA.beta = p.at("NKA_beta"); // mM-1
+  P.NKA.alpha_A = utils::get_parameter_real(p, "model", "NKA_alpha_A", out);
+  P.NKA.alpha_B = utils::get_parameter_real(p, "model", "NKA_alpha_B", out);
+  P.NKA.r = utils::get_parameter_real(p, "model", "NKA_r", out);
+  P.NKA.beta = utils::get_parameter_real(p, "model", "NKA_beta", out);
 
 	// paracellular conductances
-  P.G_P_Na = p.at("G_P_Na"); // S/m2
-  P.G_P_K = p.at("G_P_K"); // S/m2
-  P.G_P_Cl = p.at("G_P_Cl"); // S/m2
+  P.G_P_Na = utils::get_parameter_real(p, "model", "G_P_Na", out);
+  P.G_P_K = utils::get_parameter_real(p, "model", "G_P_K", out);
+  P.G_P_Cl = utils::get_parameter_real(p, "model", "G_P_Cl", out);
 
   // water permeability across membranes
-  P.L_A = p.at("L_A"); //0.6e1; // um/s
-  P.L_B = p.at("L_B"); // um/s
+  P.L_A = utils::get_parameter_real(p, "model", "L_A", out);
+  P.L_B = utils::get_parameter_real(p, "model", "L_B", out);
 
   // universal physical constants
   P.V = PSflow; // um^3 volumetric flow rate of primary saliva
 
   // osmolarity adjusting constants
-  P.chi_C = p.at("chi_C"); // mol (40 mM * 1000 um3  = xxx e-18 mol)
-  P.phi_A = p.at("phi_A"); // mM (fong 2016)
-  P.phi_B = p.at("phi_B"); // mM (Mangos 1972)
+  P.chi_C = utils::get_parameter_real(p, "model", "chi_C", out);
+  P.phi_A = utils::get_parameter_real(p, "model", "phi_A", out);
+  P.phi_B = utils::get_parameter_real(p, "model", "phi_B", out);
 }
 
 void cDuctSegmentStriated::setup_IC() {
@@ -454,7 +461,7 @@ void cDuctSegmentStriated::step(double current_time, double timestep) {
 
   // store results
   stepnum++;
-  if (stepnum % int(p.at("Tstride")) == 0) {
+  if (stepnum % Tstride == 0) {
     save_results();
   }
 }

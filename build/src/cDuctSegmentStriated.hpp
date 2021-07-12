@@ -153,7 +153,7 @@ class cDuctSegmentStriated : public cDuctSegment {
   dss::ArrayNFC x_l, dxldt;  // solution vector and derivative
   Array1Nd x, dxdt;
   cCVode *solver;
-  int stepnum, outputnum;
+  int stepnum, outputnum, Tstride;
   std::string resultsh5_dataset, resultsh5_filename;
 };
 

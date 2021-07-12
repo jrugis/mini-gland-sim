@@ -20,7 +20,10 @@ cMiniGlandDuct::cMiniGlandDuct()
 {
   id = "d1"; // there's only a single mini-gland duct
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
-  utils::get_parameters(PARAMETER_FILE_NAME, p, out); // NOTE: all the parameters are in this file
+  p = new INIReader(PARAMETER_FILE_NAME);
+  if (p->ParseError() < 0) {
+    utils::fatal_error("Error opening parameter file", out);
+  }
   
   // get duct segment mesh data
   std::ifstream mesh_file;
@@ -53,18 +56,20 @@ cMiniGlandDuct::~cMiniGlandDuct()
 {
   for (unsigned int i = 0; i < segments.size(); i++) delete segments[i]; // delete the duct segments
   out.close();                                                           // close the diagnostic file
+  delete p;
 }
 
 void cMiniGlandDuct::run()
 {
   double t = 0.0;
-  double solver_dt = p.at("delT");
+  double solver_dt = utils::get_parameter_real(p, "time", "delT", out);
+  double totalT = utils::get_parameter_real(p, "time", "totalT", out);
   struct timespec start, end;
   double elapsed;
 
   // simulation time stepping and synchronization
   clock_gettime(CLOCK_REALTIME, &start);
-  while ((p.at("totalT") - t) > 0.000001) { // HARD CODED: assumes solver_dt always > 1us
+  while ((totalT - t) > 0.000001) { // HARD CODED: assumes solver_dt always > 1us
 
 #pragma omp parallel for
 	for (auto seg : segments) { seg->step(t, solver_dt); }

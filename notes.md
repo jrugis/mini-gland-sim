@@ -55,14 +55,14 @@ make -j
 ```sh
 cd mini-gland-sim/run
 
-cp parms.dat myparms.dat
-# edit myparms.dat to set simulation parameters
+cp parms_default.ini myparms.ini
+# edit myparms.ini to set simulation parameters
 
 cp run_default.sl myrun.sl
 # edit Slurm script myrun.sl (e.g. update time limit, number of CPUs per task, etc.)
 
-python run_sim_dev.py <meshfile> myparms.dat myrun.sl
-# e.g. <meshfile> could be mini_gland_slurm-20373309_1.ply
+python run_sim_dev.py mini_gland_slurm-20373309_1.ply myparms.ini myrun.sl
+# or more generally: python run_sim_dev.py <meshfile> <parameterfile> <slurmscript>
 
 # check the Slurm queue
 squeue -u $USER
