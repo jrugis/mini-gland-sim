@@ -20,7 +20,6 @@ cMiniGlandDuct::cMiniGlandDuct()
 {
   id = "d1"; // there's only a single mini-gland duct
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
-//  utils::get_parameters(PARAMETER_FILE_NAME, p, out); // NOTE: all the parameters are in this file
   p = new INIReader(PARAMETER_FILE_NAME);
   if (p->ParseError() < 0) {
     utils::fatal_error("Error opening parameter file", out);

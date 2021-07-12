@@ -28,7 +28,6 @@ class cMiniGlandDuct {
   private:
   std::string id;
   std::ofstream out;                         // the runtime diagnostic file for this object
-//  std::unordered_map<std::string, double> p; // the model parameters
   INIReader *p;
 
   std::vector<cDuctSegment*> segments;             // the duct segment objects

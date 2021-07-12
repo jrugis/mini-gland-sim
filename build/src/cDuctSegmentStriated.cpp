@@ -223,7 +223,7 @@ void cDuctSegmentStriated::get_parameters() {
 
   // apical or basolateral transporter rates
   P.NBC.alpha = utils::get_parameter_real(p, "model", "NBC_alpha", out);
-  P.NBC.k5_m = utils::get_parameter_real(p, "model", "NBC_k5_p", out);
+  P.NBC.k5_p = utils::get_parameter_real(p, "model", "NBC_k5_p", out);
   P.NBC.k5_m = utils::get_parameter_real(p, "model", "NBC_k5_m", out);
   P.NBC.k6_p = utils::get_parameter_real(p, "model", "NBC_k6_p", out);
   P.NBC.k6_m = utils::get_parameter_real(p, "model", "NBC_k6_m", out);
