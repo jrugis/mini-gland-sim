@@ -14,7 +14,8 @@
 ###########################################################################################
 ## C++
 CPP_DEFS = -std=c++17 -fopenmp -DNDEBUG
-CPP = gcc
+CPP = g++
+CC = gcc
 
 ###########################################################################################
 ## NOTE: uncomment block for ONE of debug, profile or optimised
@@ -29,6 +30,9 @@ CPP = gcc
 CPP_FLAGS =  $(CPP_DEFS) -m64 -O3 -march=native -mtune=native -Wall -Wpedantic -g
 #CPP_FLAGS =  $(CPP_DEFS) -m64 -O0 -Wall -Wpedantic -g
 #CPP_FLAGS =  $(CPP_DEFS) -m64 -Og -Wextra -march=native -mtune=native -Wall -Wpedantic -g
+
+## C
+CFLAGS = -O3 -g
 
 ###########################################################################################
 ## NOTE: uncomment lines for ONE platform
@@ -50,7 +54,7 @@ SRC = ./src
 all: $(EXE)
 
 ini.o: $(SRC)/inih/ini.c $(SRC)/inih/ini.h
-	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
+	$(CC) $(CFLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 INIReader.o: $(SRC)/inih/cpp/INIReader.cpp $(SRC)/inih/cpp/INIReader.h $(SRC)/inih/ini.h
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
