@@ -69,7 +69,7 @@ cMiniGlandDuct.o: $(SRC)/cMiniGlandDuct.cpp $(SRC)/cMiniGlandDuct.hpp $(SRC)/uti
 cDuctSegment.o: $(SRC)/cDuctSegment.cpp $(SRC)/cDuctSegment.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
-cDuctSegmentAcinus.o: $(SRC)/cDuctSegmentAcinus.cpp $(SRC)/cDuctSegment.hpp 
+cDuctSegmentAcinus.o: $(SRC)/cDuctSegmentAcinus.cpp $(SRC)/cDuctSegmentAcinus.hpp 
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 cDuctSegmentIntercalated.o: $(SRC)/cDuctSegmentIntercalated.cpp $(SRC)/cDuctSegment.hpp 

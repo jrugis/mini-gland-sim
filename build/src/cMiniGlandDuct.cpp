@@ -13,6 +13,7 @@
 #include "utils.hpp"
 
 #include "cDuctSegment.hpp"
+#include "cDuctSegmentAcinus.hpp"
 #include "cDuctSegmentStriated.hpp"
 #include "cMiniGlandDuct.hpp"
 

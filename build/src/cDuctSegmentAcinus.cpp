@@ -5,11 +5,14 @@
  *      Author: jrugis
  */
 
-#include "cDuctSegment.hpp"
+#include "cDuctSegmentAcinus.hpp"
 
 cDuctSegmentAcinus::cDuctSegmentAcinus(cMiniGlandDuct* parent, int seg_number) : cDuctSegment(parent, seg_number) {}
 
-void cDuctSegmentAcinus::step()
+cDuctSegmentAcinus::~cDuctSegmentAcinus() {
+}
+
+void cDuctSegmentAcinus::step(double current_time, double timestep)
 {
   // invoke cells step
   // for(auto cell : cells){

@@ -42,12 +42,6 @@ class cDuctSegment {
   std::vector<cCell*> cells;             // the cells associated with this duct segment
 };
 
-class cDuctSegmentAcinus : public cDuctSegment {
-  public:
-  cDuctSegmentAcinus(cMiniGlandDuct* parent, int seg_number);
-  virtual void step();
-};
-
 class cDuctSegmentIntercalated : public cDuctSegment {
   public:
   cDuctSegmentIntercalated(cMiniGlandDuct* parent, int seg_number);
