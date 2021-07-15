@@ -1,15 +1,13 @@
 ###########################################################################################
 ##
-## target platforms: mahuika or iMac
-##
-## mahuika assumes:   CHECK VERSION???
-##   ml gimkl/2017a
-##   ml Eigen/3.3.4
-##   ml SUNDIALS/4.0.0-gimkl-2017a
+## target platform mahuika assumes:
+## ml GCC
+## ml Eigen
+## ml SUNDIALS
+## ml h5pp
 ##
 ## notes 
 ##    source code formating: clang-format -i ./src/*
-##    to execute on iMac: mpiexec -n 8 ./psim_coupled
 ##
 ###########################################################################################
 ## C++
