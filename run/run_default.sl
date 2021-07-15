@@ -7,10 +7,9 @@
 #SBATCH --hint=nomultithread
 #SBATCH --mem=1G               # may need to be adjusted
 #SBATCH --export=NONE          # these two lines required to make sure we get
-export SLURM_EXPORT_ENV=ALL    # a clean environment in our Slurm job
+export SLURM_EXPORT_ENV=ALL    #   a clean environment in our Slurm job
 
 # setup environment modules
-ml purge
 ml SUNDIALS/5.7.0-gimkl-2020a
 ml h5pp/1.9.0-gimpi-2020a
 ml Python/3.8.2-gimkl-2020a
@@ -18,7 +17,7 @@ ml Python/3.8.2-gimkl-2020a
 # OpenMP configuration
 export OMP_PROC_BIND=true
 export OMP_PLACES=cores
-export OMP_NESTED=true
+export OMP_MAX_ACTIVE_LEVELS=5
 echo "Num threads: ${OMP_NUM_THREADS}"
 
 # run the simulation
