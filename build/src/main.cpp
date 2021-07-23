@@ -6,8 +6,8 @@
  *
  *  NOTE:
  *    environment variables:
- *      OPM_NUM_THREADS = 30
- *      OMP_NESTED = TRUE
+ *      OPM_NUM_THREADS = 50
+ *      OMP_MAX_ACTIVE_LEVELS=5
  */
 
 #include <iostream>

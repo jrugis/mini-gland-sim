@@ -11,7 +11,13 @@
 ##
 ###########################################################################################
 ## C++
-CPP_DEFS = -std=c++17 -fopenmp -DNDEBUG
+## NOTE: for conditional debug compilation
+##  1) define environment variable MYDEBUG, for example: export MYDEBUG=JR1
+##  2) place conditional compilation directive in source code, for exanmple:
+##       #if MYDEBUG == JR1
+##         ...
+##       #endif
+CPP_DEFS = -std=c++17 -fopenmp -DNDEBUG -DMYDEBUG=$$MYDEBUG
 CPP = g++
 CC = gcc
 
