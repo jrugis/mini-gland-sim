@@ -16,7 +16,7 @@
 #include <unistd.h>
 
 #include "githash.h"
-#include "cMiniGlandDuct.hpp"
+#include "cMiniGland.hpp"
 
 #define TEMP_SIZE 40
 
@@ -40,7 +40,7 @@ int main(int argc, char** args)
   std::cout << "<main> maximum threads: " << omp_get_max_threads() << std::endl;
 
   // run the simulation
-  cMiniGlandDuct* duct = new cMiniGlandDuct();
+  cMiniGland* duct = new cMiniGland();
   duct->run();
   delete duct;
 

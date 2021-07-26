@@ -46,7 +46,8 @@ CPP_LIBS = -lstdc++ -lstdc++fs -lm -lsundials_cvode -lspdlog -lfmt -lhdf5_hl -lh
 ###########################################################################################
 
 EXE = ../run/mini-gland-sim
-OBJS = main.o utils.o cMiniGlandDuct.o cDuctSegment.o cDuctSegmentAcinus.o cDuctSegmentIntercalated.o cDuctSegmentStriated.o cCell.o cCellAcinus.o cCellIntercalated.o cCellStriated.o cCVode.o ini.o INIReader.o
+#OBJS = CVode.o
+OBJS = main.o utils.o cMiniGland.o cDuct.o cLTree.o cSCell.o cCMesh.o ini.o INIReader.o
 SRC = ./src
 
 all: $(EXE)
@@ -57,71 +58,41 @@ ini.o: $(SRC)/inih/ini.c $(SRC)/inih/ini.h
 INIReader.o: $(SRC)/inih/cpp/INIReader.cpp $(SRC)/inih/cpp/INIReader.h $(SRC)/inih/ini.h
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
-main.o: $(SRC)/main.cpp $(SRC)/global_defs.hpp $(SRC)/cMiniGlandDuct.hpp $(SRC)/githash.h
+main.o: $(SRC)/main.cpp $(SRC)/global_defs.hpp $(SRC)/cMiniGland.hpp $(SRC)/githash.h
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 utils.o: $(SRC)/utils.cpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
-cMiniGlandDuct.o: $(SRC)/cMiniGlandDuct.cpp $(SRC)/cMiniGlandDuct.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
+cMiniGland.o: $(SRC)/cMiniGland.cpp $(SRC)/cMiniGland.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
-cDuctSegment.o: $(SRC)/cDuctSegment.cpp $(SRC)/cDuctSegment.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
+cDuct.o: $(SRC)/cDuct.cpp $(SRC)/cDuct.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
-cDuctSegmentAcinus.o: $(SRC)/cDuctSegmentAcinus.cpp $(SRC)/cDuctSegmentAcinus.hpp 
+cLTree.o: $(SRC)/cLTree.cpp $(SRC)/cLTree.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
-cDuctSegmentIntercalated.o: $(SRC)/cDuctSegmentIntercalated.cpp $(SRC)/cDuctSegment.hpp 
+cSCell.o: $(SRC)/cSCell.cpp $(SRC)/cSCell.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
-cDuctSegmentStriated.o: $(SRC)/cDuctSegmentStriated.cpp $(SRC)/cDuctSegmentStriated.hpp 
+cCMesh.o: $(SRC)/cCMesh.cpp $(SRC)/cCMesh.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
-cCell.o: $(SRC)/cCell.cpp $(SRC)/cCell.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
-	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
+#cCVode.o: $(SRC)/cCVode.cpp $(SRC)/cCVode.hpp
+#	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
-cCellAcinus.o: $(SRC)/cCellAcinus.cpp $(SRC)/cCell.hpp 
-	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
+#LSODA.o: $(SRC)/libsoda/LSODA.cpp $(SRC)/libsoda/LSODA.h $(SRC)/libsoda/helper.h
+#	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
-cCellIntercalated.o: $(SRC)/cCellIntercalated.cpp $(SRC)/cCell.hpp 
-	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
-
-cCellStriated.o: $(SRC)/cCellStriated.cpp $(SRC)/cCellStriated.hpp 
-	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
-
-cCVode.o: $(SRC)/cCVode.cpp $(SRC)/cCVode.hpp
-	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
-
-LSODA.o: $(SRC)/libsoda/LSODA.cpp $(SRC)/libsoda/LSODA.h $(SRC)/libsoda/helper.h
-	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
-
-cLSODA.o: $(SRC)/cLSODA.cpp $(SRC)/cLSODA.hpp $(SRC)/libsoda/LSODA.h
-	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
+#cLSODA.o: $(SRC)/cLSODA.cpp $(SRC)/cLSODA.hpp $(SRC)/libsoda/LSODA.h
+#	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 .PHONY: $(SRC)/githash.h
 $(SRC)/githash.h: ../.git/HEAD ../.git/index
 	echo "#ifndef GIT_HASH" > $@ && \
 	echo "#define GIT_HASH \"$(shell git describe --tags --always --dirty)\"" >> $@ && \
 	echo "#endif" >> $@
-
-#cLumen.o: $(SRC)/cLumen.cpp $(SRC)/cLumen.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp 
-#	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
-
-#cLumenTree.o: $(SRC)/cLumenTree.cpp $(SRC)/cLumenTree.hpp
-#	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
-
-#cCVodes.o: $(SRC)/cCVodes.cpp $(SRC)/cCVodes.hpp
-#	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
-
-#cCell_flow.o: $(SRC)/cCell_flow.cpp $(SRC)/cCell_flow.hpp
-#	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
-
-#cCell_calcium.o: $(SRC)/cCell_calcium.cpp $(SRC)/cCell_calcium.hpp $(SRC)/cCellMesh.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
-#	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
-
-#cCellMesh.o: $(SRC)/cCellMesh.cpp $(SRC)/cCellMesh.hpp $(SRC)/cCell_calcium.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
-#	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 $(EXE): $(OBJS)
 	$(CPP) $(CPP_FLAGS) $(CPP_LIBS) -o $@ $+

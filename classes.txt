@@ -1,27 +1,28 @@
 
 Mini-Gland-Sim Classes
 ======================
-24.07.21
+26.07.21
 
 
-                        MiniGland
-                           |
-                           |
-           ----------------------------------------
-           |       |                              | 
-         Acinus   ...                            Duct
-           |                                      |
-           |                                      |
-   -------------------                -------------------------------------
-   |       |         |                |       |         |       |         |    
- ACell    ...      LTree            ICell    ...      SCell    ...      LTree  
- 
- 
+                         MiniGland
+                            |
+                            |
+         ---------------------------------------------
+         |       |                 |                 |
+       Acinus   ...               Duct             LTree
+         |                         |
+         |                         |
+     ---------         ---------------------------
+     |       |         |       |         |       |    
+   ACell    ...      ICell    ...      SCell    ...  
+     |                 |                 |
+   CMesh             CMesh             CMesh
+
+
 NOTES
 =====
 1) MiniGland object 
-     - controls simulation timing/sequencing
-	 - passes fluid flow data from acinii to the duct
-2) PDE solver in each ACell object
+    - controls simulation timing/sequencing
+    - passes fluid flow data from acinii to the duct
+2) PDE solver in each Acinus object
 3) ODE solver in Duct object
-4) ACell, ICell, SCell classes are derived from virtual base class Cell 

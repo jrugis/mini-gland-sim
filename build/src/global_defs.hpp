@@ -22,6 +22,11 @@
 #define ACINUS 0
 #define INTERCALATED 1
 #define STRIATED 2
+#define DUCT 3
+
+#define APICAL 0
+#define BASOLATERAL 1
+#define BASAL 2
 
 //************************************************************************
 // some convenience typedefs
@@ -37,6 +42,7 @@ typedef Eigen::Matrix<int, Eigen::Dynamic, 4, Eigen::RowMajorBit> MatrixN4i;
 typedef Eigen::Matrix<int, Eigen::Dynamic, Eigen::Dynamic> MatrixNNi;
 
 typedef Eigen::Vector3d Vector3d;
+typedef Eigen::Vector2i Vector2i;
 typedef Eigen::Vector3i Vector3i;
 typedef Eigen::Vector4i Vector4i;
 
