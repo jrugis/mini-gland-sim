@@ -11,7 +11,7 @@
 ##
 ###########################################################################################
 ## C++
-CPP_DEFS = -std=c++17 -fopenmp -DNDEBUG
+CPP_DEFS = -std=c++17 -fopenmp #-DNDEBUG
 CPP = g++
 CC = gcc
 
@@ -47,7 +47,7 @@ CPP_LIBS = -lstdc++ -lstdc++fs -lm -lsundials_cvode -lspdlog -lfmt -lhdf5_hl -lh
 
 EXE = ../run/mini-gland-sim
 #OBJS = CVode.o
-OBJS = main.o utils.o cMiniGland.o cDuct.o cLTree.o cSCell.o cCMesh.o ini.o INIReader.o
+OBJS = main.o utils.o cMiniGland.o cDuct.o cLTree.o cSCell.o cCMesh.o ini.o INIReader.o cCVode.o
 SRC = ./src
 
 all: $(EXE)
@@ -79,8 +79,8 @@ cSCell.o: $(SRC)/cSCell.cpp $(SRC)/cSCell.hpp $(SRC)/utils.hpp $(SRC)/global_def
 cCMesh.o: $(SRC)/cCMesh.cpp $(SRC)/cCMesh.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
-#cCVode.o: $(SRC)/cCVode.cpp $(SRC)/cCVode.hpp
-#	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
+cCVode.o: $(SRC)/cCVode.cpp $(SRC)/cCVode.hpp
+	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 #LSODA.o: $(SRC)/libsoda/LSODA.cpp $(SRC)/libsoda/LSODA.h $(SRC)/libsoda/helper.h
 #	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
