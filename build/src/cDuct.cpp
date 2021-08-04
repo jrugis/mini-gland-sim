@@ -103,7 +103,7 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   Eigen::VectorXf cellz(nscells);
   for (int i = 0; i < nscells; i++) {
     // have to cast to cCellStriated to get methods defined only on that class
-    cSCell *cell_striated = static_cast<cSCell*>(scells[i]);
+    cSCell *cell_striated = scells[i];
 
     // initialise the cell
     cell_striated->init(P);

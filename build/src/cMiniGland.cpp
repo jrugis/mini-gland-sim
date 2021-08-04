@@ -53,6 +53,7 @@ void cMiniGland::run()
     
     // feed fluid flow into duct and 
 	//    solve duct fluid flow...
+    duct->step(t, solver_dt);
 
     // output step running time
     clock_gettime(CLOCK_REALTIME, &end);

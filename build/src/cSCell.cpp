@@ -126,7 +126,7 @@ void cSCell::process_mesh_info(std::vector<double>& lumen_segment) {
     int idx = std::distance(loc_int.begin(), it);
     api_area_int(0, idx) += api_face_area[i];
   }
-  out << "<CellStriated> lumen segment areas:";
+  out << "<SCell> lumen segment areas:";
   for (auto const &e: api_area_int.reshaped()) {
     out << "  " << e;
   }
