@@ -78,6 +78,24 @@ void cSCell::init(duct::parameters_t &parent_P) {
 void cSCell::setup_parameters(duct::parameters_t &parent_P) {
   // copy of parents local parameters object
   P = parent_P;
+
+  // read in specific striated parameters
+  //
+  // apical channel conductances
+  P.G_ENaC = utils::get_parameter_real(p, "striated", "G_ENaC", out);
+
+  // sodium potassium pump rates
+  P.NKA.alpha_A = utils::get_parameter_real(p, "striated", "NKA_alpha_A", out);
+  P.NKA.alpha_B = utils::get_parameter_real(p, "striated", "NKA_alpha_B", out);
+
+	// paracellular conductances
+  P.G_P_Na = utils::get_parameter_real(p, "striated", "G_P_Na", out);
+  P.G_P_K = utils::get_parameter_real(p, "striated", "G_P_K", out);
+  P.G_P_Cl = utils::get_parameter_real(p, "striated", "G_P_Cl", out);
+
+  // water permeability across membranes
+  P.L_A = utils::get_parameter_real(p, "striated", "L_A", out);
+  P.L_B = utils::get_parameter_real(p, "striated", "L_B", out);
 }
 
 void cSCell::process_mesh_info(std::vector<double>& lumen_segment) {
