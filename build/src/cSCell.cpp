@@ -75,6 +75,37 @@ void cSCell::init(duct::parameters_t &parent_P) {
   setup_IC();
 }
 
+void cSCell::setup_loc_int_arrays() {
+  // setting up arrays for intermediate calculations
+  int n_loc_int = loc_int.size();
+  Na_A.resize(Eigen::NoChange, n_loc_int);
+  K_A.resize(Eigen::NoChange, n_loc_int);
+  Cl_A.resize(Eigen::NoChange, n_loc_int);
+  HCO_A.resize(Eigen::NoChange, n_loc_int);
+  H_A.resize(Eigen::NoChange, n_loc_int);
+  CO_A.resize(Eigen::NoChange, n_loc_int);
+  J_A.resize(Eigen::NoChange, n_loc_int);
+  J_CDF_A.resize(Eigen::NoChange, n_loc_int);
+  J_buf_A.resize(Eigen::NoChange, n_loc_int);
+  J_NHE_A.resize(Eigen::NoChange, n_loc_int);
+  J_AE2_A.resize(Eigen::NoChange, n_loc_int);
+  V_A_Cl.resize(Eigen::NoChange, n_loc_int);
+  I_CFTR.resize(Eigen::NoChange, n_loc_int);
+  V_A_HCO.resize(Eigen::NoChange, n_loc_int);
+  I_CFTR_B.resize(Eigen::NoChange, n_loc_int);
+  V_A_K.resize(Eigen::NoChange, n_loc_int);
+  I_BK.resize(Eigen::NoChange, n_loc_int);
+  V_A_Na.resize(Eigen::NoChange, n_loc_int);
+  I_ENaC.resize(Eigen::NoChange, n_loc_int);
+  J_NKA_A.resize(Eigen::NoChange, n_loc_int);
+  V_P_Na.resize(Eigen::NoChange, n_loc_int);
+  V_P_K.resize(Eigen::NoChange, n_loc_int);
+  V_P_Cl.resize(Eigen::NoChange, n_loc_int);
+  I_P_Na.resize(Eigen::NoChange, n_loc_int);
+  I_P_K.resize(Eigen::NoChange, n_loc_int);
+  I_P_Cl.resize(Eigen::NoChange, n_loc_int);
+}
+
 void cSCell::setup_parameters(duct::parameters_t &parent_P) {
   // copy of parents local parameters object
   P = parent_P;
@@ -173,6 +204,9 @@ void cSCell::process_mesh_info(std::vector<double>& lumen_segment) {
   dwAdt.setZero();
   dxldt.resize(Eigen::NoChange, n_l);
   dxldt.setZero();
+
+  // set up arrays
+  setup_loc_int_arrays();
 }
 
 void cSCell::init_const(){
@@ -283,18 +317,11 @@ void cSCell::f_ODE(const duct::ArrayNFC &x_l, const duct::lumen_prop_t &lumen_pr
   double CO_C = x_c(8);
 
   // lumenal variables of all the lumen segments this cell interfaces with
-  int n_loc_int = loc_int.size();
-  Array1Nd Na_A(1, n_loc_int);
   Na_A = x_l(0, loc_int);
-  Array1Nd K_A(1, n_loc_int);
   K_A = x_l(1, loc_int);
-  Array1Nd Cl_A(1, n_loc_int);
   Cl_A = x_l(2, loc_int);
-  Array1Nd HCO_A(1, n_loc_int);
   HCO_A = x_l(3, loc_int);
-  Array1Nd H_A(1, n_loc_int);
   H_A = x_l(4, loc_int);
-  Array1Nd CO_A(1, n_loc_int);
   CO_A = x_l(5, loc_int);
 
   // water transport
@@ -306,7 +333,6 @@ void cSCell::f_ODE(const duct::ArrayNFC &x_l, const duct::lumen_prop_t &lumen_pr
   // dwAdt(1,loc_int) = dwAdt(1,loc_int) + A_A_int .* J_A; % um^3/s [1, n_loc_int]
   double osm_c = P.chi_C / w_C * 1e18;
   double J_B = 1e-18*L_B*V_w*(Na_C + K_C + Cl_C + HCO_C + osm_c - Na_B - K_B - Cl_B - HCO_B - phi_B);
-  Array1Nd J_A(1, n_loc_int);
   J_A = 1e-18*L_A*V_w*(Na_A + K_A + Cl_A + HCO_A + phi_A - Na_C - K_C - Cl_C - HCO_C - osm_c);
   double dwdt = A_B * J_B - (api_area_int * J_A).sum();
   dwAdt(0, loc_int) = api_area_int * J_A;
@@ -314,7 +340,6 @@ void cSCell::f_ODE(const duct::ArrayNFC &x_l, const duct::lumen_prop_t &lumen_pr
   // % CDF C02 Diffusion 
   // J_CDF_A = p_CO * (CO_C - CO_A).* w_C .* A_A_int./A_A; % e-18 mol/s [1, n_loc_int]
   // J_CDF_B = p_CO * (CO_C - CO_B).* w_C; % e-18 mol/s
-  Array1Nd J_CDF_A(1, n_loc_int);
   J_CDF_A = p_CO * (CO_C - CO_A) * w_C * api_area_int / A_A;
   double J_CDF_B = p_CO * (CO_C - CO_B) * w_C;
 
@@ -322,20 +347,17 @@ void cSCell::f_ODE(const duct::ArrayNFC &x_l, const duct::lumen_prop_t &lumen_pr
   // J_buf_C = (k_buf_p*CO_C - k_buf_m.*HCO_C.*H_C).* w_C; % e-18 mol/s 
   // J_buf_A =  k_buf_p*CO_A - k_buf_m.*HCO_A.*H_A; %mM/s [1,n_loc_int]
   double J_buf_C = (k_buf_p * CO_C - k_buf_m * HCO_C * H_C) * w_C;
-  Array1Nd J_buf_A(1, n_loc_int);
   J_buf_A = k_buf_p * CO_A - k_buf_m * HCO_A * H_A;
 
   // % NHE
   // J_NHE_A = alpha_NHE_A*(k1_p*k2_p*Na_A.*H_C-k1_m*k2_m*Na_C.*H_A)./(k1_p*Na_A+k2_p*H_C+k1_m*H_A+k2_m*Na_C).*w_C.* A_A_int./A_A; % e-18 mol/s [1,n_loc_int]
   // J_NHE_B = alpha_NHE_B*(k1_p*k2_p*Na_B *H_C-k1_m*k2_m*Na_C *H_B)./(k1_p*Na_B+k2_p*H_C+k1_m*H_B+k2_m*Na_C).*w_C; % e-18 mol/s 
-  Array1Nd J_NHE_A(1, n_loc_int);
   J_NHE_A = alpha_NHE_A * (k1_p * k2_p * Na_A * H_C - k1_m * k2_m * Na_C * H_A) / (k1_p * Na_A + k2_p * H_C + k1_m * H_A + k2_m * Na_C) * w_C * api_area_int / A_A;
   double J_NHE_B = alpha_NHE_B * (k1_p * k2_p * Na_B * H_C - k1_m * k2_m * Na_C * H_B) / (k1_p * Na_B + k2_p * H_C + k1_m * H_B + k2_m * Na_C) * w_C;
 
   // % AE2
   // J_AE2_A = alpha_AE2_A*(k3_p*k4_p*Cl_A.*HCO_C - k3_m*k4_m*Cl_C.*HCO_A)./(k3_p*Cl_A+k4_p*HCO_C+k3_m*HCO_A+k4_m*Cl_C).*w_C.* A_A_int./A_A; % e-18 mol/s [1,n_loc_int]
   // J_AE2_B = alpha_AE2_B*(k3_p*k4_p*Cl_B.*HCO_C - k3_m*k4_m*Cl_C.*HCO_B)./(k3_p*Cl_B+k4_p*HCO_C+k3_m*HCO_B+k4_m*Cl_C).*w_C; % e-18 mol/s 
-  Array1Nd J_AE2_A(1, n_loc_int);
   J_AE2_A = alpha_AE2_A * (k3_p * k4_p * Cl_A * HCO_C - k3_m * k4_m * Cl_C * HCO_A) / (k3_p * Cl_A + k4_p * HCO_C + k3_m * HCO_A + k4_m * Cl_C) * w_C * api_area_int / A_A;
   double J_AE2_B = alpha_AE2_B*(k3_p*k4_p*Cl_B*HCO_C - k3_m*k4_m*Cl_C*HCO_B)/(k3_p*Cl_B+k4_p*HCO_C+k3_m*HCO_B+k4_m*Cl_C)*w_C;
 
@@ -346,25 +368,19 @@ void cSCell::f_ODE(const duct::ArrayNFC &x_l, const duct::lumen_prop_t &lumen_pr
   // % CFTR Apical 
   // V_A_Cl = 1e3*R*T/(-1*F).*log(Cl_A./Cl_C); % mV [1,n_loc_int]
   // I_CFTR = G_CFTR .* A_A_int .* (V_A - V_A_Cl); % e-6 nA [1,n_loc_int]
-  Array1Nd V_A_Cl(1, n_loc_int);
   V_A_Cl = 1e3*R*T/(-1*F_const)*(Cl_A/Cl_C).log();
-  Array1Nd I_CFTR(1, n_loc_int);
   I_CFTR = G_CFTR * api_area_int * (V_A - V_A_Cl);
 
   // % CFTR_B Apical
   // V_A_HCO = 1e3*R*T/((-1)*F).*log(HCO_A./HCO_C); % mV [1,n_loc_int]
   // I_CFTR_B = 0.25 * G_CFTR .* A_A_int .* (V_A - V_A_HCO); % e-6 nA [1,n_loc_int]
-  Array1Nd V_A_HCO(1, n_loc_int);
   V_A_HCO = 1e3*R*T/((-1)*F_const)*(HCO_A/HCO_C).log();
-  Array1Nd I_CFTR_B(1, n_loc_int);
   I_CFTR_B = 0.25 * G_CFTR * api_area_int * (V_A - V_A_HCO);
 
   // % I_BK Apical
   // V_A_K = 1e3*R*T/F.*log(K_A./K_C); % mV  [1,n_loc_int]
   // I_BK = G_BK .* A_A_int .* (V_A - V_A_K); % e-6 nA 
-  Array1Nd V_A_K(1, n_loc_int);
   V_A_K = 1e3*R*T/F_const*(K_A/K_C).log();
-  Array1Nd I_BK(1, n_loc_int);
   I_BK = G_BK * api_area_int * (V_A - V_A_K);
 
   // % I_K_B Basolateral
@@ -376,15 +392,12 @@ void cSCell::f_ODE(const duct::ArrayNFC &x_l, const duct::lumen_prop_t &lumen_pr
   // % ENaC Apical
   // V_A_Na = 1e3*R*T/F*log(Na_A./Na_C); % mV  [1,n_loc_int]
   // I_ENaC = G_ENaC .* A_A_int .* (V_A - V_A_Na); % e-6 nA
-  Array1Nd V_A_Na(1, n_loc_int);
   V_A_Na = 1e3*R*T/F_const*(Na_A/Na_C).log();
-  Array1Nd I_ENaC(1, n_loc_int);
   I_ENaC = G_ENaC * api_area_int * (V_A - V_A_Na);
 
   // % NaKATPase, NKA 
   // J_NKA_A = A_A_int .* alpha_NKA_A * r_NKA .*(K_A.^2.*Na_C.^3)./(K_A.^2+beta_NKA*Na_C.^3); % 10^-12 mol/s [1,n_loc_int]
   // J_NKA_B = A_B .* alpha_NKA_B * r_NKA .*(K_B.^2.*Na_C.^3)./(K_B.^2+beta_NKA*Na_C.^3); % 10^-12 mol/s
-  Array1Nd J_NKA_A(1, n_loc_int);
   J_NKA_A = api_area_int * alpha_NKA_A * r_NKA * (K_A.pow(2)*std::pow(Na_C,3))/(K_A.pow(2)+beta_NKA*std::pow(Na_C,3));
   double J_NKA_B = A_B * alpha_NKA_B * r_NKA *(std::pow(K_B,2)*std::pow(Na_C,3))/(std::pow(K_B,2)+beta_NKA*std::pow(Na_C,3));
 
@@ -397,17 +410,11 @@ void cSCell::f_ODE(const duct::ArrayNFC &x_l, const duct::lumen_prop_t &lumen_pr
   // I_P_K    = G_P_K .* A_A_int .* (V_T - V_P_K); % e-6 nA [1,n_loc_int]
   // I_P_Cl   = G_P_Cl .* A_A_int .* (V_T - V_P_Cl); % e-6 nA [1,n_loc_int]
   double V_T = V_A - V_B;
-  Array1Nd V_P_Na(1, n_loc_int);
   V_P_Na   = 1e3*R*T/F_const*(Na_A/Na_B).log();
-  Array1Nd V_P_K(1, n_loc_int);
   V_P_K    = 1e3*R*T/F_const*(K_A/K_B).log();
-  Array1Nd V_P_Cl(1, n_loc_int);
   V_P_Cl   = 1e3*R*T/(-F_const)*(Cl_A/Cl_B).log();
-  Array1Nd I_P_Na(1, n_loc_int);
   I_P_Na   = G_P_Na * api_area_int * (V_T - V_P_Na);
-  Array1Nd I_P_K(1, n_loc_int);
   I_P_K    = G_P_K * api_area_int * (V_T - V_P_K);
-  Array1Nd I_P_Cl(1, n_loc_int);
   I_P_Cl   = G_P_Cl * api_area_int * (V_T - V_P_Cl);
 
   // % V_A e-15 c/s
