@@ -59,7 +59,7 @@ cSCell::cSCell(cDuct* _parent, int _cell_number) : parent(_parent), cell_number(
     }
   }
   mean_z = sum_z / static_cast<double>(mesh->nfaces * 3);
-  out << "<CellStriated> centroid_z = " << mean_z << std::endl;
+  out << "<SCell> centroid_z = " << mean_z << std::endl;
 
 }
 

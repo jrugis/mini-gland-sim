@@ -32,7 +32,7 @@ using namespace duct;
 // the function that will be called by the SUNDIALS solver
 static int ode_func(realtype t, N_Vector y, N_Vector ydot, void* user_data)
 {
-  // pointer to DuctSegmentStriated object
+  // pointer to Duct object
   cDuct* pt_duct = static_cast<cDuct*>(user_data);
 
   // create input and output arrays for calling cell flow function
@@ -102,7 +102,6 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   // setup the cells too
   Eigen::VectorXf cellz(nscells);
   for (int i = 0; i < nscells; i++) {
-    // have to cast to cCellStriated to get methods defined only on that class
     cSCell *cell_striated = scells[i];
 
     // initialise the cell
@@ -134,7 +133,7 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
 
   // create hdf5 dataset
   int num_steps = std::ceil(totalT / (delT * Tstride)) + 1;
-  out << "<DuctSegmentStriated> output data size: " << num_steps << " x " << num_var << std::endl;
+  out << "<Duct> output data size: " << num_steps << " x " << num_var << std::endl;
   resultsh5_filename = id + "_results.h5";
   resultsh5_dataset = id + "/x";
 
