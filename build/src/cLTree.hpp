@@ -22,8 +22,8 @@ public:
   ~cLTree();
 
   MatrixN3d nodes;     // the lumen tree nodes
+  MatrixN1d radii;     //                diameters
   MatrixN2i segs;      //                segments
-  MatrixN1d diams;     //                diameters
 
 protected:
 

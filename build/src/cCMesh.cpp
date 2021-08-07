@@ -37,7 +37,7 @@ cCMesh::cCMesh(int cell_number, std::ofstream& out)
   int itets = std::stoi(tokens[5]);                                    //    tetrahedrons start index
   utils::mesh_skip_lines(mesh_file, tncells - cell_number - 1);        // skip over the rest of cells
 
-  out << "<CMesh> cell_number: " << cell_number << std::endl;
+  out << "<CMesh> cell_number: " << cell_number+1 << std::endl;
   out << "<CMesh> number of vertices: " << nverts << std::endl;
   out << "<CMesh> number of faces: " << nfaces << std::endl;
   out << "<CMesh> number of tetrahedrons: " << ntets << std::endl;
@@ -61,11 +61,11 @@ cCMesh::cCMesh(int cell_number, std::ofstream& out)
 	               std::stoi(tokens[2]) - iverts); // save vertex indices
   }
   utils::mesh_skip_lines(mesh_file, tnfaces - ifaces - nfaces); // skip over the remaining faces
-
+  
   // get tetrahedron data for this cell
   if (ntets > 0) {                                                         // NOTE: only acinus cells have tets!
 	utils::mesh_skip_lines(mesh_file, itets);                              // skip to the correct tets block
-    faces.resize(ntets, Eigen::NoChange);                                  // resize the tets matrix
+    tets.resize(ntets, Eigen::NoChange);                                   // resize the tets matrix
 	for (int i = 0; i < ntets; i++) {                                      // get vertex indices
 	  std::vector<std::string> tokens = utils::mesh_get_tokens(mesh_file); // four vertex indices
 	  tets.row(i) = Vector4i(std::stoi(tokens[0]) - itets, std::stoi(tokens[1]) - itets, std::stoi(tokens[2]) - itets,
@@ -76,10 +76,9 @@ cCMesh::cCMesh(int cell_number, std::ofstream& out)
 
   // calculate all of the face centers
   utils::calc_tri_centers(face_centers, verts, faces);
-
+  
   // calculate all of the face areas
   utils::calc_tri_areas(face_areas, verts, faces);
-
 }
 
 cCMesh::~cCMesh()

@@ -39,7 +39,7 @@ private:
   std::ofstream out;        // the runtime diagnostic file for this object
   INIReader *p;
   
-  //std::vector<cAcinus*> acinii; // the acinii objects
+  std::vector<cAcinus*> acinii; // the acinus objects
   cDuct *duct;                    // a single duct object
 };
 

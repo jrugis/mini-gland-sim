@@ -12,6 +12,7 @@
 #include "global_defs.hpp"
 #include "utils.hpp"
 
+#include "cAcinus.hpp"
 #include "cDuct.hpp"
 #include "cLTree.hpp"
 #include "cMiniGland.hpp"
@@ -24,14 +25,28 @@ cMiniGland::cMiniGland()
   if (p->ParseError() < 0) {
     utils::fatal_error("Error opening parameter file", out);
   }
-  duct = new cDuct(this);   // create duct object
-  ltree = new cLTree(this); // create lumen tree object
+  // get the acinuii and duct counts
+  std::ifstream mesh_file;
+  utils::mesh_open(mesh_file, out);                                      // open the mesh file
+  int nacinii = utils::mesh_get_count(mesh_file, std::string("acinii")); // number of acinii
+  int nducts = utils::mesh_get_count(mesh_file, std::string("duct"));    // number of ducts (should be 0 or 1)
+  utils::mesh_end_header(mesh_file);                                     // skip over the rest of the header
+
+  out << "<MiniGland> Acinus count: " << nacinii << std::endl; 
+  out << "<MiniGland> Duct count: " << nducts << std::endl;
+
+  for (int i = 0; i < nacinii; i++) {
+	acinii.push_back(new cAcinus(this, i));  // create the acinii
+  }
+  if (nducts == 1) duct = new cDuct(this);   // create duct object
+  ltree = new cLTree(this);                  // create lumen tree object
 }
 
 cMiniGland::~cMiniGland()
 {
   delete ltree;
   delete duct;
+  for (unsigned int i = 0; i < acinii.size(); i++) delete acinii[i]; // delete the acinii
   out.close();     // close the diagnostic file
   delete p;
 }
@@ -53,7 +68,7 @@ void cMiniGland::run()
     
     // feed fluid flow into duct and 
 	//    solve duct fluid flow...
-    duct->step(t, solver_dt);
+	duct->step(t, solver_dt);
 
     // output step running time
     clock_gettime(CLOCK_REALTIME, &end);

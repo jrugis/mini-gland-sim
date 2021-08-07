@@ -40,9 +40,9 @@ int main(int argc, char** args)
   std::cout << "<main> maximum threads: " << omp_get_max_threads() << std::endl;
 
   // run the simulation
-  cMiniGland* duct = new cMiniGland();
-  duct->run();
-  delete duct;
+  cMiniGland* mg = new cMiniGland();
+  mg->run();
+  delete mg;
 
   // output total running time
   clock_gettime(CLOCK_REALTIME, &end);

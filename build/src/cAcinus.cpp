@@ -22,13 +22,13 @@ cAcinus::cAcinus(cMiniGland* _parent, int _acinus_number) : parent(_parent), aci
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
   p = parent->p; // the parameters INIReader object
 
-  // get the duct lumen tree data
+  // get the acinus data
   std::ifstream mesh_file;
   utils::mesh_open(mesh_file, out);                                      // open the mesh file
-  int nacinii = utils::mesh_get_count(mesh_file, std::string("acinii")); // number of acinii
+  //int nacinii = utils::mesh_get_count(mesh_file, std::string("acinii")); // number of acinii
   utils::mesh_end_header(mesh_file);                                     // skip over the rest of the header
 
-  utils::mesh_skip_lines(mesh_file, nacinii);                            // skip to the duct data
+  utils::mesh_skip_lines(mesh_file, acinus_number-1);                    // skip to the correct acinus
   std::vector<std::string> tokens = utils::mesh_get_tokens(mesh_file);
   int ncells = std::stoi(tokens[0]);                                     // number of cells                                   
   int icells = std::stoi(tokens[1]);                                     // first cell index
