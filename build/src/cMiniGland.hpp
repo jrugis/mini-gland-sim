@@ -17,12 +17,14 @@
 #include "inih/cpp/INIReader.h"
 #include "global_defs.hpp"
 
+class cAcinus;
 class cDuct;
 class cLTree;
 
 class cMiniGland {
-  friend cDuct;  // child object
-  friend cLTree; //
+    friend cAcinus;  // child object
+    friend cDuct;    //
+    friend cLTree;   //
 
 public:
   cMiniGland();

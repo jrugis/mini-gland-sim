@@ -47,7 +47,7 @@ CPP_LIBS = -lstdc++ -lstdc++fs -lm -lsundials_cvode -lspdlog -lfmt -lhdf5_hl -lh
 
 EXE = ../run/mini-gland-sim
 #OBJS = CVode.o
-OBJS = main.o utils.o cMiniGland.o cDuct.o cLTree.o cSCell.o cCMesh.o ini.o INIReader.o cCVode.o
+OBJS = main.o utils.o cMiniGland.o cAcinus.o cDuct.o cLTree.o cACell.o  cSCell.o cCMesh.o ini.o INIReader.o cCVode.o
 SRC = ./src
 
 all: $(EXE)
@@ -67,10 +67,16 @@ utils.o: $(SRC)/utils.cpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 cMiniGland.o: $(SRC)/cMiniGland.cpp $(SRC)/cMiniGland.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
+cAcinus.o: $(SRC)/cAcinus.cpp $(SRC)/cAcinus.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
+	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
+
 cDuct.o: $(SRC)/cDuct.cpp $(SRC)/cDuct.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 cLTree.o: $(SRC)/cLTree.cpp $(SRC)/cLTree.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
+	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
+
+cACell.o: $(SRC)/cACell.cpp $(SRC)/cACell.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 cSCell.o: $(SRC)/cSCell.cpp $(SRC)/cSCell.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
