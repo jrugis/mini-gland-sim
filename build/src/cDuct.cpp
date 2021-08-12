@@ -99,6 +99,9 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   // setup initial conditions
   setup_IC();
 
+  // setup arrays for ODE calculation
+  setup_arrays();
+
   // setup the cells too
   Eigen::VectorXf cellz(nscells);
   for (int i = 0; i < nscells; i++) {
@@ -404,6 +407,15 @@ void cDuct::step(double t, double dt)
 	 	
 }
 
+void cDuct::setup_arrays() {
+  int n_l = lumen_prop.n_int;
+
+  dwAdt.resize(Eigen::NoChange, n_l);
+  v.resize(Eigen::NoChange, n_l);
+  v_up.resize(Eigen::NoChange, n_l);
+  x_up.resize(Eigen::NoChange, n_l);
+}
+
 void cDuct::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
   // populate x_l and x_c from x_in
   distribute_x(x_in);
@@ -422,7 +434,6 @@ void cDuct::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
   }
 
   // setup a vector to record the rate of change of lumen fluid flow
-  Array1Nd dwAdt(1, n_l);
   dwAdt.setZero();
 
   // setup the ode rate of change matrices
@@ -438,9 +449,7 @@ void cDuct::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
   // % compute the fluid flow rate in the lumen
   // v = ones(1,n_l) * P.PSflow; % um^3/s volume flow rate of fluid out of each lumen segment
   // v_up = ones(1,n_l) * P.PSflow; % um^3/s volume flow rate of fluid into each lumen segment
-  Array1Nd v(1, n_l);
   v = P.PSflow;
-  Array1Nd v_up(1, n_l);
   v_up = P.PSflow;
 
   // accumulate the fluid as secreted from cells along the lumen
@@ -448,8 +457,6 @@ void cDuct::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
   v += P.PSflow;
 
   // construct a matrix to represent the upstream variable value for each lumen segment
-  ArrayNFC x_up;
-  x_up.resize(Eigen::NoChange, n_l);
   x_up.setZero();
   x_up.col(0) = P.ConP;
   

@@ -75,7 +75,7 @@ void cSCell::init(duct::parameters_t &parent_P) {
   setup_IC();
 }
 
-void cSCell::setup_loc_int_arrays() {
+void cSCell::setup_arrays() {
   // setting up arrays for intermediate calculations
   int n_loc_int = loc_int.size();
   Na_A.resize(Eigen::NoChange, n_loc_int);
@@ -205,8 +205,8 @@ void cSCell::process_mesh_info(std::vector<double>& lumen_segment) {
   dxldt.resize(Eigen::NoChange, n_l);
   dxldt.setZero();
 
-  // set up arrays
-  setup_loc_int_arrays();
+  // set up arrays for f_ODE calculation
+  setup_arrays();
 }
 
 void cSCell::init_const(){

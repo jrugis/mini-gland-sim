@@ -159,6 +159,8 @@ private:
   duct::lumen_prop_t lumen_prop;
   duct::ArrayNFC x_l, dxldt;  // solution vector and derivative
   Array1Nd x, dxdt;
+  Array1Nd dwAdt, v, v_up;
+  duct::ArrayNFC x_up;
   cCVode *solver;
   int stepnum, outputnum, Tstride;
   std::string resultsh5_dataset, resultsh5_filename;
@@ -168,6 +170,7 @@ private:
   void distribute_x(const Array1Nd &x_in);
   void gather_x(Array1Nd &x_out);
   void save_results();
+  void setup_arrays();
 };
 
 #endif /* CDUCT_H_ */

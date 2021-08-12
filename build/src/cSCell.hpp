@@ -77,7 +77,7 @@ private:
   void setup_parameters(duct::parameters_t &parent_P);
   void setup_IC();
   void init_const();
-  void setup_loc_int_arrays();
+  void setup_arrays();
   Array1Nd Na_A, K_A, Cl_A, HCO_A, H_A, CO_A;
   Array1Nd J_A, J_CDF_A, J_buf_A, J_NHE_A, J_AE2_A;
   Array1Nd V_A_Cl, I_CFTR, V_A_HCO, I_CFTR_B, V_A_K;
