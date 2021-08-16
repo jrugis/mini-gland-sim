@@ -76,7 +76,7 @@ void cSCell::init(duct::parameters_t &parent_P) {
 }
 
 void cSCell::setup_arrays() {
-  // setting up arrays for intermediate calculations
+  // setting up arrays once at the beginning for performance
   int n_loc_int = loc_int.size();
   Na_A.resize(Eigen::NoChange, n_loc_int);
   K_A.resize(Eigen::NoChange, n_loc_int);

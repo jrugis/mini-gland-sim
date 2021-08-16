@@ -78,7 +78,7 @@ private:
   void setup_IC();
   void init_const();
   void setup_arrays();
-  Array1Nd Na_A, K_A, Cl_A, HCO_A, H_A, CO_A;
+  Array1Nd Na_A, K_A, Cl_A, HCO_A, H_A, CO_A;  // intermediate calculation arrays as members for performance
   Array1Nd J_A, J_CDF_A, J_buf_A, J_NHE_A, J_AE2_A;
   Array1Nd V_A_Cl, I_CFTR, V_A_HCO, I_CFTR_B, V_A_K;
   Array1Nd I_BK, V_A_Na, I_ENaC, J_NKA_A, V_P_Na, V_P_K, V_P_Cl;

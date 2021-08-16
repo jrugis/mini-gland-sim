@@ -408,6 +408,7 @@ void cDuct::step(double t, double dt)
 }
 
 void cDuct::setup_arrays() {
+  // setting up arrays once at the beginning for performance
   int n_l = lumen_prop.n_int;
 
   dwAdt.resize(Eigen::NoChange, n_l);
