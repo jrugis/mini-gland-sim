@@ -2,7 +2,7 @@
  * cSCell.cpp
  *
  *  Created on: 21/04/2021
- *      Author: jrugis
+ *      Author: jrugis, cscott
  */
 
 #include <cmath>

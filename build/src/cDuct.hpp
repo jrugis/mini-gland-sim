@@ -2,7 +2,7 @@
  * cDuct.hpp
  *
  *  Created on: 21/4/2021
- *      Author: jrugis
+ *      Author: jrugis, cscott
  */
 
 #ifndef CDUCT_H_

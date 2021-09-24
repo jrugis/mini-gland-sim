@@ -28,7 +28,7 @@ namespace utils {
   int get_parameter_integer(INIReader* ini, const std::string& section, const std::string& name, std::ofstream& out);
   std::string get_parameter_string(INIReader* ini, const std::string& section, const std::string& name, std::ofstream& out);
   double get_distance(const Vector3d& p, const Vector3d& v, const Vector3d& w);
-  void mesh_open(std::ifstream& mesh_file, std::ofstream& out);
+  void mesh_open(std::ifstream& mesh_file, std::string mesh_file_name, std::ofstream& out);
   int mesh_get_count(std::ifstream& file, std::string tag);
   void mesh_end_header(std::ifstream& file);
   void mesh_skip_lines(std::ifstream& file, int count);

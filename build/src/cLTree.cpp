@@ -21,15 +21,14 @@ cLTree::cLTree(cMiniGland* _parent) : parent(_parent)
 
   // get the lumen tree data
   std::ifstream mesh_file;
-  utils::mesh_open(mesh_file, out);                                           // open the mesh file
-  int nacinii = utils::mesh_get_count(mesh_file, std::string("acinii"));      // get acinii count
-  int nduct = utils::mesh_get_count(mesh_file, std::string("duct"));          //     duct 
-  int nnodes = utils::mesh_get_count(mesh_file, std::string("lumen_node"));   //   lumen node
-  int nsegs = utils::mesh_get_count(mesh_file, std::string("lumen_segment")); //   lumen segment
-  utils::mesh_end_header(mesh_file);                                          // skip over the rest of the header
+  utils::mesh_open(mesh_file, DUCT_FILE_NAME, out);                                           // open the mesh file
+  int nnodes = utils::mesh_get_count(mesh_file, std::string("duct_node"));   // duct nodes count
+  int nsegs = utils::mesh_get_count(mesh_file, std::string("duct_segment")); // duct segments count
+  utils::mesh_end_header(mesh_file);                                         // skip over the rest of the header
 
   out << "<LTree> Lumen tree node count: " << nnodes << std::endl; 
   out << "<LTree> Lumen tree segment count: " << nsegs << std::endl; 
+  /*
   utils::mesh_skip_lines(mesh_file, nacinii + nduct);  // skip to the lumen data
 
   nodes.resize(nnodes, Eigen::NoChange);               // resize the nodes matrix
@@ -45,6 +44,7 @@ cLTree::cLTree(cMiniGland* _parent) : parent(_parent)
     std::vector<std::string> tokens = utils::mesh_get_tokens(mesh_file);
 	segs.row(i) = Vector2i(std::stoi(tokens[0]), std::stoi(tokens[1]));
   }
+  */
   mesh_file.close();
 }
 

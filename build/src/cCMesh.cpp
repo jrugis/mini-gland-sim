@@ -15,6 +15,7 @@
 
 cCMesh::cCMesh(int cell_number, std::ofstream& out)
 {
+	/*
   // get cell mesh data
   std::ifstream mesh_file;
   utils::mesh_open(mesh_file, out);                                             // open the mesh file
@@ -79,6 +80,7 @@ cCMesh::cCMesh(int cell_number, std::ofstream& out)
   
   // calculate all of the face areas
   utils::calc_tri_areas(face_areas, verts, faces);
+	*/
 }
 
 cCMesh::~cCMesh()

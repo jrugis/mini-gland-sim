@@ -108,9 +108,9 @@ double utils::get_distance(const Vector3d& p, const Vector3d& v, const Vector3d&
   return ((projection - p).norm());                                 // return distance(p, projection)
 }
 
-void utils::mesh_open(std::ifstream& mesh_file, std::ofstream& out)
+void utils::mesh_open(std::ifstream& mesh_file, std::string mesh_file_name, std::ofstream& out)
 {
-  mesh_file.open(MESH_FILE_NAME); // open the mesh file
+  mesh_file.open(mesh_file_name); // open the mesh file
   if (not mesh_file.is_open()) fatal_error("mesh file " + std::string(MESH_FILE_NAME) + " could not be opened", out);
   return;
 }

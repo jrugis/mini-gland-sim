@@ -2,7 +2,7 @@
  * cDuct.cpp
  *
  *  Created on: 26/07/2021
- *      Author: jrugis
+ *      Author: jrugis, cscott
  */
 
 #include <iostream>
@@ -63,7 +63,7 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   id = parent->id + "d1";
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
   p = parent->p; // the parameters INIReader object
-
+  /*
   // get the duct lumen tree data
   std::ifstream mesh_file;
   utils::mesh_open(mesh_file, out);                                      // open the mesh file
@@ -171,13 +171,14 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
 
   // store t=0
   save_results();
+  */
 }
 
 cDuct::~cDuct()
 {
-  for (unsigned int i = 0; i < scells.size(); i++) delete scells[i]; // delete the striated cells
+  //for (unsigned int i = 0; i < scells.size(); i++) delete scells[i]; // delete the striated cells
   out.close();
-  delete solver;
+  //delete solver;
 }
 
 void cDuct::distribute_x(const Array1Nd &x_in) {

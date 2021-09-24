@@ -2,7 +2,7 @@
  * cSCell.hpp
  *
  *  Created on: 21/4/2021
- *      Author: jrugis
+ *      Author: jrugis, cscott
  */
 
 #ifndef CSCELL_H_

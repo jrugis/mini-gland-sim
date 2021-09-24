@@ -41,7 +41,7 @@ int main(int argc, char** args)
 
   // run the simulation
   cMiniGland* mg = new cMiniGland();
-  mg->run();
+  //mg->run();
   delete mg;
 
   // output total running time

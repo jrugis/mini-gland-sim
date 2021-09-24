@@ -25,6 +25,7 @@ cMiniGland::cMiniGland()
   if (p->ParseError() < 0) {
     utils::fatal_error("Error opening parameter file", out);
   }
+  /*
   // get the acinuii and duct counts
   std::ifstream mesh_file;
   utils::mesh_open(mesh_file, out);                                      // open the mesh file
@@ -39,14 +40,15 @@ cMiniGland::cMiniGland()
 	acinii.push_back(new cAcinus(this, i));  // create the acinii
   }
   if (nducts == 1) duct = new cDuct(this);   // create duct object
+  */
   ltree = new cLTree(this);                  // create lumen tree object
 }
 
 cMiniGland::~cMiniGland()
 {
   delete ltree;
-  delete duct;
-  for (unsigned int i = 0; i < acinii.size(); i++) delete acinii[i]; // delete the acinii
+  //delete duct;
+  //for (unsigned int i = 0; i < acinii.size(); i++) delete acinii[i]; // delete the acinii
   out.close();     // close the diagnostic file
   delete p;
 }

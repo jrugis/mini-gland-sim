@@ -22,11 +22,11 @@ run_dir = os.getcwd()
 
 if(len(sys.argv) < 4):
   print("error: missing argument(s)")
-  print("usage: python run_sim.py <mesh-file> <parameter-file> <slurm-script>")
+  print("usage: python run_sim.py <mesh-dir> <parameter-file> <slurm-script>")
   quit()
 
-mesh = sys.argv[1] # mesh file
-if not os.path.exists(run_dir + "/" + mesh):
+mesh_dir = sys.argv[1] # mesh file
+if not os.path.exists(run_dir + "/" + mesh_dir):
   print("no such mesh file: " + mesh)
   quit()
 
@@ -54,14 +54,15 @@ os.chdir(results_dir)
 # copy some files into results directory
 os.system("cp " + run_dir + "/mini-gland-sim .")
 os.system("chmod 770 mini-gland-sim")
-os.system("cp " + run_dir + "/" + mesh + " m.ply")
+os.system("mkdir meshes")
+os.system("cp " + run_dir + "/" + mesh_dir + "/*" + " ./meshes")
 os.system("cp " + run_dir + "/" + parms + " p.ini")
 os.system("cp " + run_dir + "/plot_*.py .")
 os.system("cp " + run_dir + "/" + slurm + " run.sl")
 
 # run the executable
-#os.system("./mini-gland-sim")
-os.system("sbatch run.sl")
+os.system("./mini-gland-sim")
+#os.system("sbatch run.sl")
 
 # go back to top level
 os.chdir(run_dir)
