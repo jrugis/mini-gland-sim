@@ -1,7 +1,7 @@
 /*
  * utils.cpp
  *
- *	Created on: 21/04/2021
+ *	Created on: 26/09/2021
  *	Author: jrugis
  */
 
@@ -40,8 +40,6 @@ void utils::calc_tri_areas(MatrixN1d& areas, const MatrixN3d& vertices, const Ma
     Vector3d v1 = Vector3d(vertices.row((triangles)(n, 0)));
     Vector3d v2 = Vector3d(vertices.row((triangles)(n, 1)));
     Vector3d v3 = Vector3d(vertices.row((triangles)(n, 2)));
-    // Eigen::Matrix<double, 1, 3> side1 = vert.block<1, 3>(0, 0) - vert.block<1, 3>(1, 0);
-    // Eigen::Matrix<double, 1, 3> side2 = vert.block<1, 3>(0, 0) - vert.block<1, 3>(2, 0);
     Vector3d side1 = v1 - v2;
     Vector3d side2 = v1 - v3;
     areas(n) = 0.5 * (side1.cross(side2)).norm();
@@ -111,7 +109,7 @@ double utils::get_distance(const Vector3d& p, const Vector3d& v, const Vector3d&
 void utils::mesh_open(std::ifstream& mesh_file, std::string mesh_file_name, std::ofstream& out)
 {
   mesh_file.open(mesh_file_name); // open the mesh file
-  if (not mesh_file.is_open()) fatal_error("mesh file " + std::string(MESH_FILE_NAME) + " could not be opened", out);
+  if (not mesh_file.is_open()) fatal_error("mesh file " + mesh_file_name + " could not be opened", out);
   return;
 }
 

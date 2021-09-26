@@ -1,7 +1,7 @@
 /*
- * cSCell.cpp
+ * cSICell.cpp
  *
- *  Created on: 21/04/2021
+ *  Created on: 26/09/2021
  *      Author: jrugis, cscott
  */
 
@@ -18,64 +18,30 @@
 #include "utils.hpp"
 
 #include "cDuct.hpp"
-#include "cCMesh.hpp"
-#include "cSCell.hpp"
+#include "cSIMesh.hpp"
+#include "cSICell.hpp"
 
-cSCell::cSCell(cDuct* _parent, int _cell_number) : parent(_parent), cell_number(_cell_number)
+cSICell::cSICell(cDuct* _parent, std::string fname) : parent(_parent)
 {
-  id = parent->id + "c" + std::to_string(cell_number + 1); // NOTE: one based cell id
+  id = "cell_" + fname.substr(fname.find("Cell")+5,6); // NOTE: one based cell id
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
   p = parent->p; // the parameters map
-  mesh = new cCMesh(cell_number, out);
-  
-// ***********************************************  
-// - TEMPORARY - to be replaced later  
-  int a = 0;
-  int bl = 0;
-  int b = 0;
-  for (int i = 0; i < mesh->nfaces; i++) {
-	double x = mesh->face_centers(i,0);  
-	double y = mesh->face_centers(i,1);  
-	double dist = sqrt(pow(x,2) + pow(y,2));
-	if ((dist - 4.0) < 1.5) { a++; mesh->face_types(i) = APICAL;}
-    else if ((23.8 - dist) < 3.0) { b++; mesh->face_types(i) = BASAL;}
-    else { bl++; mesh->face_types(i) = BASOLATERAL;}
-  }
-  out << "<SCell> Apical face count: " << a << std::endl;
-  out << "<SCell> Basolateral face count: " << bl << std::endl;
-  out << "<SCell> Basal face count: " << b << std::endl;
-// ***********************************************  
-
-  // min/max/mean z coordinate
-  min_z = std::numeric_limits<double>::max();
-  max_z = std::numeric_limits<double>::lowest();
-  double sum_z = 0.0;
-  for (int n = 0; n < mesh->nfaces; n++) {
-    for (int i = 0; i < 3; i++) {
-      double zcoord = mesh->verts.row(mesh->faces(n, i))(2);
-      min_z = std::min(min_z, zcoord);
-      max_z = std::max(max_z, zcoord);
-      sum_z += zcoord;
-    }
-  }
-  mean_z = sum_z / static_cast<double>(mesh->nfaces * 3);
-  out << "<SCell> centroid_z = " << mean_z << std::endl;
-
+  mesh = new cSIMesh(fname, out);
 }
 
-cSCell::~cSCell() {
+cSICell::~cSICell() {
   delete mesh;
   out.close();
 }
 
-void cSCell::init(duct::parameters_t &parent_P) {
+void cSICell::init(duct::parameters_t &parent_P) {
   // init in separate function so parent initialiser has completed
   setup_parameters(parent_P);
   init_const();
   setup_IC();
 }
 
-void cSCell::setup_arrays() {
+void cSICell::setup_arrays() {
   // setting up arrays once at the beginning for performance
   int n_loc_int = loc_int.size();
   Na_A.resize(Eigen::NoChange, n_loc_int);
@@ -106,7 +72,7 @@ void cSCell::setup_arrays() {
   I_P_Cl.resize(Eigen::NoChange, n_loc_int);
 }
 
-void cSCell::setup_parameters(duct::parameters_t &parent_P) {
+void cSICell::setup_parameters(duct::parameters_t &parent_P) {
   // copy of parents local parameters object
   P = parent_P;
 
@@ -129,7 +95,7 @@ void cSCell::setup_parameters(duct::parameters_t &parent_P) {
   P.L_B = utils::get_parameter_real(p, "striated", "L_B", out);
 }
 
-void cSCell::process_mesh_info(std::vector<double>& lumen_segment) {
+void cSICell::process_mesh_info(std::vector<double>& lumen_segment) {
   // mean z coordinate of each apical triangle vertex
   std::vector<double> api_coord_z_mean(napical);
   int api_count = 0;
@@ -209,7 +175,7 @@ void cSCell::process_mesh_info(std::vector<double>& lumen_segment) {
   setup_arrays();
 }
 
-void cSCell::init_const(){
+void cSICell::init_const(){
   // calc areas of different surface regions
   api_area = 0.0;
   baslat_area = 0.0;
@@ -229,7 +195,7 @@ void cSCell::init_const(){
   out << "<SCell> baslat_area = " << baslat_area << std::endl;
 }
 
-void cSCell::setup_IC(){
+void cSICell::setup_IC(){
   // cellular initial concentration
   x_c(0) = -26.1257;  // TODO: where should these 3 be read from?
   x_c(1) = -52.2513;
@@ -242,7 +208,7 @@ void cSCell::setup_IC(){
   x_c(8) = 1.28;
 }
 
-void cSCell::f_ODE(const duct::ArrayNFC &x_l, const duct::lumen_prop_t &lumen_prop) {
+void cSICell::f_ODE(const duct::ArrayNFC &x_l, const duct::lumen_prop_t &lumen_prop) {
   // constant parameters
   double Na_B = P.ConI(duct::Na);
   double K_B = P.ConI(duct::K);
@@ -509,7 +475,7 @@ void cSCell::f_ODE(const duct::ArrayNFC &x_l, const duct::lumen_prop_t &lumen_pr
 #endif
 }
 
-const double cSCell::compute_electroneutrality_check() {
+const double cSICell::compute_electroneutrality_check() {
   // in mol
   double e = (x_c(3) + x_c(4) - x_c(5) - x_c(6) + x_c(7)) * x_c(2) * 1e-18 - 1.5 * P.chi_C;
 

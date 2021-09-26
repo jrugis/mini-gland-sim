@@ -16,8 +16,8 @@
 #include <limits>
 
 #define PARAMETER_FILE_NAME "p.ini"
-#define DUCT_FILE_NAME "meshes/_duct.ply"
-#define MESH_FILE_NAME "meshes/Cell_XXX_X.ply"
+#define DUCT_FILE_NAME "./meshes/_duct.ply"
+#define MESH_FILE_DIR "./meshes"
 #define DIAGNOSTIC_FILE_EXTENSION ".out"
 
 #define ACINUS 0

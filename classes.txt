@@ -16,7 +16,7 @@ Mini-Gland-Sim Classes
      |       |         |       |         |       |    
    ACell    ...      ICell    ...      SCell    ...  
      |                 |                 |
-   CMesh             CMesh             CMesh
+   AMesh             SIMesh            SIMesh
 
 
 NOTES

@@ -47,7 +47,7 @@ CPP_LIBS = -lstdc++ -lstdc++fs -lm -lsundials_cvode -lspdlog -lfmt -lhdf5_hl -lh
 
 EXE = ../run/mini-gland-sim
 #OBJS = CVode.o
-OBJS = main.o utils.o cMiniGland.o cAcinus.o cDuct.o cLTree.o cACell.o  cSCell.o cCMesh.o ini.o INIReader.o cCVode.o
+OBJS = main.o utils.o cMiniGland.o cAcinus.o cDuct.o cLTree.o cACell.o  cSICell.o cSIMesh.o ini.o INIReader.o cCVode.o
 SRC = ./src
 
 all: $(EXE)
@@ -79,10 +79,10 @@ cLTree.o: $(SRC)/cLTree.cpp $(SRC)/cLTree.hpp $(SRC)/utils.hpp $(SRC)/global_def
 cACell.o: $(SRC)/cACell.cpp $(SRC)/cACell.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
-cSCell.o: $(SRC)/cSCell.cpp $(SRC)/cSCell.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
+cSICell.o: $(SRC)/cSICell.cpp $(SRC)/cSICell.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
-cCMesh.o: $(SRC)/cCMesh.cpp $(SRC)/cCMesh.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
+cSIMesh.o: $(SRC)/cSIMesh.cpp $(SRC)/cSIMesh.hpp $(SRC)/utils.hpp $(SRC)/global_defs.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 cCVode.o: $(SRC)/cCVode.cpp $(SRC)/cCVode.hpp

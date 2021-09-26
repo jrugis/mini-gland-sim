@@ -1,12 +1,12 @@
 /*
- * cSCell.hpp
+ * cSICell.hpp
  *
- *  Created on: 21/4/2021
+ *  Created on: 26/09/2021
  *      Author: jrugis, cscott
  */
 
-#ifndef CSCELL_H_
-#define CSCELL_H_
+#ifndef CSICELL_H_
+#define CSICELL_H_
 
 #include <fstream>
 #include <string>
@@ -36,13 +36,13 @@ namespace scell {
   };
 }
 
-class cCMesh;
+class cSIMesh;
 
-class cSCell {
+class cSICell {
 
 public:
-  cSCell(cDuct* _parent, int _cell_number);
-  ~cSCell();
+  cSICell(cDuct* _parent, std::string _fname);
+  ~cSICell();
   scell::Array1CC x_c, dxcdt;   // solution vectors for ions
   duct::ArrayNFC dxldt;
   Array1Nd dwAdt;
@@ -65,7 +65,7 @@ private:
   duct::parameters_t P;
 
   int cell_number;     // this cell number
-  cCMesh *mesh;        // this cell mesh
+  cSIMesh *mesh;        // this cell mesh
   double api_area, baslat_area;      // surface areas for different regions
   int napical;                       // number of apical triangles
   double min_z, max_z, mean_z;
@@ -86,4 +86,4 @@ private:
 };
 
 
-#endif /* CSCELL_H_ */
+#endif /* CSICELL_H_ */

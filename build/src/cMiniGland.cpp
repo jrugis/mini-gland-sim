@@ -1,7 +1,7 @@
 /*
  * cMiniGland.cpp
  *
- *  Created on: 21/04/2021
+ *  Created on: 26/09/2021
  *      Author: jrugis
  */
 
@@ -19,35 +19,20 @@
 
 cMiniGland::cMiniGland()
 {
-  id = "g1"; // there's only a single mini-gland
+  id = "_mini-gland"; // there's only one mini-gland object
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
   p = new INIReader(PARAMETER_FILE_NAME);
   if (p->ParseError() < 0) {
     utils::fatal_error("Error opening parameter file", out);
   }
-  /*
-  // get the acinuii and duct counts
-  std::ifstream mesh_file;
-  utils::mesh_open(mesh_file, out);                                      // open the mesh file
-  int nacinii = utils::mesh_get_count(mesh_file, std::string("acinii")); // number of acinii
-  int nducts = utils::mesh_get_count(mesh_file, std::string("duct"));    // number of ducts (should be 0 or 1)
-  utils::mesh_end_header(mesh_file);                                     // skip over the rest of the header
-
-  out << "<MiniGland> Acinus count: " << nacinii << std::endl; 
-  out << "<MiniGland> Duct count: " << nducts << std::endl;
-
-  for (int i = 0; i < nacinii; i++) {
-	acinii.push_back(new cAcinus(this, i));  // create the acinii
-  }
-  if (nducts == 1) duct = new cDuct(this);   // create duct object
-  */
-  ltree = new cLTree(this);                  // create lumen tree object
+  ltree = new cLTree(this);  // create lumen tree object
+  duct = new cDuct(this);    // create duct object
 }
 
 cMiniGland::~cMiniGland()
 {
   delete ltree;
-  //delete duct;
+  delete duct;
   //for (unsigned int i = 0; i < acinii.size(); i++) delete acinii[i]; // delete the acinii
   out.close();     // close the diagnostic file
   delete p;

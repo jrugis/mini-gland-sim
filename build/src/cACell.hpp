@@ -15,7 +15,7 @@
 #include "global_defs.hpp"
 
 class cAcinus;
-class cCMesh;
+//class cCMesh;
 
 #define DIFVARS 3                        // number of diffusing node variables - c, ip
 //#define NONDIFVARS 2                     // number of non-diffusing variables - g, h
@@ -43,7 +43,7 @@ private:
   INIReader *p;        // model parameters
 
   int cell_number;     // this cell number
-  cCMesh *mesh;        // this cell mesh
+//  cCMesh *mesh;        // this cell mesh
   
   void make_matrices();
   //void initialise();

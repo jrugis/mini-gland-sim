@@ -13,7 +13,7 @@
 #include "utils.hpp"
 
 #include "cAcinus.hpp"
-#include "cCMesh.hpp"
+//#include "cCMesh.hpp"
 #include "cACell.hpp"
 
 cACell::cACell(cAcinus* _parent, int _cell_number) : parent(_parent), cell_number(_cell_number)
@@ -21,14 +21,14 @@ cACell::cACell(cAcinus* _parent, int _cell_number) : parent(_parent), cell_numbe
   id = parent->id + "c" + std::to_string(cell_number + 1); // NOTE: one based cell id
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
   p = parent->p; // the parameters map
-  mesh = new cCMesh(cell_number, out);
+  //mesh = new cCMesh(cell_number, out);
 
   make_matrices(); // create the constant matrices
 
 }
 
 cACell::~cACell() {
-  delete mesh;
+  //delete mesh;
   out.close();
 }
 

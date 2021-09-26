@@ -5,15 +5,16 @@
  *      Author: jrugis, cscott
  */
 
-#include <iostream>
-#include <string>
+#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <iomanip>
-#include <algorithm>
+#include <iostream>
 #include <limits>
 #include <numeric>
 #include <optional>
+#include <string>
+#include <vector>
 
 #include <nvector/nvector_serial.h>    /* access to serial N_Vector            */
 #include <sundials/sundials_types.h>   /* defs. of realtype, sunindextype      */
@@ -23,7 +24,7 @@
 #include "utils.hpp"
 #include "cMiniGland.hpp"
 #include "cLTree.hpp"
-#include "cSCell.hpp"
+#include "cSICell.hpp"
 #include "cCVode.hpp"
 #include "cDuct.hpp"
 
@@ -60,39 +61,27 @@ static int ode_func(realtype t, N_Vector y, N_Vector ydot, void* user_data)
 
 cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
 {
-  id = parent->id + "d1";
+  id = "_duct";    // there's only one duct object
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
   p = parent->p; // the parameters INIReader object
-  /*
-  // get the duct lumen tree data
-  std::ifstream mesh_file;
-  utils::mesh_open(mesh_file, out);                                      // open the mesh file
-  int nacinii = utils::mesh_get_count(mesh_file, std::string("acinii")); // number of acinii
-  utils::mesh_end_header(mesh_file);                                     // skip over the rest of the header
 
-  utils::mesh_skip_lines(mesh_file, nacinii);                            // skip to the duct data
-  std::vector<std::string> tokens = utils::mesh_get_tokens(mesh_file);
-  int nicells = std::stoi(tokens[0]);                                     // number of intercalated cell                                   
-  int iicells = std::stoi(tokens[1]);                                     // first intercalated cell index
-  int nscells = std::stoi(tokens[2]);                                     // number of striated cell                                   
-  int iscells = std::stoi(tokens[3]);                                     // first striated cell index
-  nlsegs = std::stoi(tokens[4]);                                      // number of duct lumen segments                                   
-  ilsegs = std::stoi(tokens[5]);                                      // first duct lumen segment index
-  mesh_file.close();
-
-  out << "<Duct> Lumen segment count: " << nlsegs << std::endl; 
-  out << "<Duct> Intercalated cell count: " << nicells << std::endl;
-  out << "<Duct> Striated cell count: " << nscells << std::endl;
-
-  // create the cells
-  for (int i = 0; i < nscells; i++) {
-	scells.push_back(new cSCell(this, i + iscells));
+  // search the mesh directory for striated and intercalated cell meshes
+  for (const auto &file : std::filesystem::directory_iterator(MESH_FILE_DIR)){
+	std::string fpath = std::filesystem::path(file.path());
+	if(fpath.find("Cell_")==std::string::npos) continue;
+    if(fpath.find("I0") != std::string::npos) icells.push_back(new cSICell(this, fpath));
+    if(fpath.find("S0") != std::string::npos) scells.push_back(new cSICell(this, fpath));
   }
+  
+  //out << "<Duct> Duct segment count: " << nlsegs << std::endl; 
+  out << "<Duct> Intercalated cell count: " << icells.size() << std::endl;
+  out << "<Duct> Striated cell count: " << scells.size() << std::endl;
 
   // create parameters structure
   p = parent->p;  // pointer to ini reader object on parent
   get_parameters();
 
+/*
   // mesh stuff (each cell has it's own mesh data, lumen segments here)
   process_mesh_info();
 
@@ -105,7 +94,7 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   // setup the cells too
   Eigen::VectorXf cellz(nscells);
   for (int i = 0; i < nscells; i++) {
-    cSCell *cell_striated = scells[i];
+    cSICell *cell_striated = scells[i];
 
     // initialise the cell
     cell_striated->init(P);
@@ -179,7 +168,8 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
 
 cDuct::~cDuct()
 {
-  //for (unsigned int i = 0; i < scells.size(); i++) delete scells[i]; // delete the striated cells
+  for (unsigned int i = 0; i < icells.size(); i++) delete icells[i]; // delete the intercalated cells
+  for (unsigned int i = 0; i < scells.size(); i++) delete scells[i]; // delete the striated cells
   out.close();
   //delete solver;
 }
@@ -226,7 +216,7 @@ void cDuct::process_mesh_info() {
   double lumen_end = std::numeric_limits<double>::lowest();
   int ncells = scells.size();
   for (int i = 0; i < ncells; i++) {
-    cSCell* cell_striated = scells[i];
+    cSICell* cell_striated = scells[i];
     double cellminz = cell_striated->get_min_z();
     double cellmaxz = cell_striated->get_max_z();
     lumen_start = std::min(cellminz, lumen_start);
@@ -354,15 +344,7 @@ void cDuct::get_parameters() {
 
 void cDuct::step(double t, double dt)
 {
-//********************************
-  // TEMPORARY EXAMPLE: to get first duct lumen tree segment endpoints...
-  cLTree *lt = parent->ltree;
-  Vector3d seg_in = lt->nodes.row(lt->segs(ilsegs + 0, 0));	
-  Vector3d seg_out = lt->nodes.row(lt->segs(ilsegs + 0, 1));	
-//********************************
-
- // Much more goes here.,.
-	
+/*	
   // Testing: call f_ODE once
   if (stepnum == 0) {
     out << "writing x and xdot for debugging" << std::endl;
@@ -405,7 +387,7 @@ void cDuct::step(double t, double dt)
   if (stepnum % Tstride == 0) {
     save_results();
   }
-	 	
+*/
 }
 
 void cDuct::setup_arrays() {
@@ -443,7 +425,7 @@ void cDuct::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
 
   // sum values from cells
   for (int i = 0; i < n_c; i++) {
-    cSCell* cell_striated = scells[i];
+    cSICell* cell_striated = scells[i];
     dwAdt += cell_striated->dwAdt;
     dxldt += cell_striated->dxldt;
   }

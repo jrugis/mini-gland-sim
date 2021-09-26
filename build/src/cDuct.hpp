@@ -130,10 +130,10 @@ namespace duct {
 }
 
 class cMiniGland;
-class cSCell;
+class cSICell;
 
 class cDuct {
-  friend cSCell; // child object
+  friend cSICell; // child object
 
 public:
   cDuct(cMiniGland* parent);
@@ -151,8 +151,9 @@ protected:
 
 private:
   cMiniGland* parent;
-  std::vector<cSCell*> scells;    // the striated cells associated with this duct
-  double L_int;  // Lumen segment discretisation interval
+  std::vector<cSICell*> icells;    // the intercalated cells associated with this duct
+  std::vector<cSICell*> scells;    //     striated 
+  double L_int;   // Lumen segment discretisation interval
   double PSflow;  // um3/s volumetric primary saliva flow rate
   duct::conc_t Conc;
   duct::parameters_t P;

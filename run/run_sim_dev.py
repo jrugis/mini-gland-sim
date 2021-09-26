@@ -27,7 +27,7 @@ if(len(sys.argv) < 4):
 
 mesh_dir = sys.argv[1] # mesh file
 if not os.path.exists(run_dir + "/" + mesh_dir):
-  print("no such mesh file: " + mesh)
+  print("no such mesh directory: " + mesh_dir)
   quit()
 
 parms = sys.argv[2] # parameters file
