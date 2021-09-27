@@ -21,9 +21,10 @@
 #include "cSIMesh.hpp"
 #include "cSICell.hpp"
 
-cSICell::cSICell(cDuct* _parent, std::string fname) : parent(_parent)
+cSICell::cSICell(cDuct* _parent, std::string fname, cell_groups _cell_group) : parent(_parent), cell_group(_cell_group)
 {
-  id = "cell_" + fname.substr(fname.find("Cell")+5,6); // NOTE: one based cell id
+  id = "cell_" + fname.substr(fname.find("Cell")+5,4); // NOTE: one based cell id
+  cell_number = std::stoi(id.substr(6,3)); 
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
   p = parent->p; // the parameters map
   mesh = new cSIMesh(fname, out);

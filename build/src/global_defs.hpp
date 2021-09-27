@@ -20,14 +20,9 @@
 #define MESH_FILE_DIR "./meshes"
 #define DIAGNOSTIC_FILE_EXTENSION ".out"
 
-#define ACINUS 0
-#define INTERCALATED 1
-#define STRIATED 2
-#define DUCT 3
-
-#define APICAL 0
-#define BASOLATERAL 1
-#define BASAL 2
+enum face_types{APICAL, BASOLATERAL, BASAL};                  // face types
+enum cell_groups{STRIATED, INTERCALATED, ACINAR_1, ACINAR_2}; // cell groups
+enum lt_groups{DUCT, ACINUS_1, ACINUS_2};       // lumen tree segment groups 
 
 //************************************************************************
 // some convenience typedefs

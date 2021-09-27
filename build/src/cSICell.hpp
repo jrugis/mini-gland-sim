@@ -41,7 +41,7 @@ class cSIMesh;
 class cSICell {
 
 public:
-  cSICell(cDuct* _parent, std::string _fname);
+  cSICell(cDuct* _parent, std::string _fname, cell_groups _cell_type);
   ~cSICell();
   scell::Array1CC x_c, dxcdt;   // solution vectors for ions
   duct::ArrayNFC dxldt;
@@ -64,10 +64,11 @@ private:
   INIReader *p;        // model parameters
   duct::parameters_t P;
 
-  int cell_number;     // this cell number
-  cSIMesh *mesh;        // this cell mesh
-  double api_area, baslat_area;      // surface areas for different regions
-  int napical;                       // number of apical triangles
+  int cell_number;              // this cell number
+  cell_groups cell_group;       // STRIATED or INTERCALATED
+  cSIMesh *mesh;                // this cell mesh
+  double api_area, baslat_area; // surface areas for different regions
+  int napical;                  // number of apical triangles
   double min_z, max_z, mean_z;
   std::vector<int> api_lumen_conn;
   std::vector<double> api_face_area;

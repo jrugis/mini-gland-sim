@@ -68,9 +68,8 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   // search the mesh directory for striated and intercalated cell meshes
   for (const auto &file : std::filesystem::directory_iterator(MESH_FILE_DIR)){
 	std::string fpath = std::filesystem::path(file.path());
-	if(fpath.find("Cell_")==std::string::npos) continue;
-    if(fpath.find("I0") != std::string::npos) icells.push_back(new cSICell(this, fpath));
-    if(fpath.find("S0") != std::string::npos) scells.push_back(new cSICell(this, fpath));
+    if(fpath.find("Cell_I") != std::string::npos) icells.push_back(new cSICell(this, fpath, INTERCALATED));
+    if(fpath.find("Cell_S") != std::string::npos) scells.push_back(new cSICell(this, fpath, STRIATED));
   }
   
   //out << "<Duct> Duct segment count: " << nlsegs << std::endl; 
