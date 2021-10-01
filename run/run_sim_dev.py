@@ -22,12 +22,12 @@ run_dir = os.getcwd()
 
 if(len(sys.argv) < 4):
   print("error: missing argument(s)")
-  print("usage: python run_sim.py <mesh-dir> <parameter-file> <slurm-script>")
+  print("usage: python run_sim.py <mesh-zip-file> <parameter-file> <slurm-script>")
   quit()
 
-mesh_dir = sys.argv[1] # mesh file
-if not os.path.exists(run_dir + "/" + mesh_dir):
-  print("no such mesh directory: " + mesh_dir)
+mesh_zip_file = sys.argv[1] # mesh file
+if not os.path.exists(run_dir + "/" + mesh_zip_file):
+  print("no such mesh zip file: " + run_dir + "/" + mesh_zip_file)
   quit()
 
 parms = sys.argv[2] # parameters file
@@ -55,7 +55,7 @@ os.chdir(results_dir)
 os.system("cp " + run_dir + "/mini-gland-sim .")
 os.system("chmod 770 mini-gland-sim")
 os.system("mkdir meshes")
-os.system("cp " + run_dir + "/" + mesh_dir + "/*.ply" + " ./meshes")
+os.system("unzip -q " + run_dir + "/" + mesh_zip_file + " -d ./meshes")
 os.system("cp " + run_dir + "/" + parms + " p.ini")
 os.system("cp " + run_dir + "/plot_*.py .")
 os.system("cp " + run_dir + "/" + slurm + " run.sl")
