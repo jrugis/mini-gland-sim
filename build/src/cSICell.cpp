@@ -239,7 +239,8 @@ void cSICell::f_ODE(const duct::ArrayNFC &x_l, const duct::lumen_prop_t &lumen_p
   double k4_p = P.AE2.k4_p; // 1/s
   double k4_m = P.AE2.k4_m; // 1/s
 
-  double alpha_NBC = P.NBC.alpha;
+  double alpha_NBC_A = P.NBC.alpha_A;
+  double alpha_NBC_B = P.NBC.alpha_B;
   double k5_p = P.NBC.k5_p; // 1/s
   double k5_m = P.NBC.k5_m; // 1/s
   double k6_p = P.NBC.k6_p; // 1/s
@@ -330,7 +331,9 @@ void cSICell::f_ODE(const duct::ArrayNFC &x_l, const duct::lumen_prop_t &lumen_p
 
   // % NBC Basolateral
   // J_NBC = alpha_NBC.*(k5_p*k6_p*Na_C.*HCO_C-k5_m*k6_m*Na_B*HCO_B)./(k5_p.*Na_C.*HCO_C+k6_p*k5_m+k6_m*Na_B*HCO_B).*w_C; % e-18 mol/s
-  double J_NBC = alpha_NBC*(k5_p*k6_p*Na_C*HCO_C-k5_m*k6_m*Na_B*HCO_B)/(k5_p*Na_C*HCO_C+k6_p*k5_m+k6_m*Na_B*HCO_B)*w_C;
+  //double J_NBC = alpha_NBC*(k5_p*k6_p*Na_C*HCO_C-k5_m*k6_m*Na_B*HCO_B)/(k5_p*Na_C*HCO_C+k6_p*k5_m+k6_m*Na_B*HCO_B)*w_C;
+  out << ">>>>>>>>>>>>> NEED TO UPDATE F_ODE EQUATIONS" << std::endl;
+  double J_NBC=0;
 
   // % CFTR Apical 
   // V_A_Cl = 1e3*R*T/(-1*F).*log(Cl_A./Cl_C); % mV [1,n_loc_int]

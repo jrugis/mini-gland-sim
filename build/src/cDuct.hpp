@@ -29,7 +29,8 @@ namespace duct {
 
   // parameters
   struct nbc_t {
-    double alpha;
+    double alpha_A;
+    double alpha_B;
     double k5_p;
     double k5_m;
     double k6_p;

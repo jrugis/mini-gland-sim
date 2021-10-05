@@ -290,7 +290,8 @@ void cDuct::get_parameters() {
   P.G_K_B = utils::get_parameter_real(p, "duct_common", "G_K_B", out);
 
   // apical or basolateral transporter rates
-  P.NBC.alpha = utils::get_parameter_real(p, "duct_common", "NBC_alpha", out);
+  P.NBC.alpha_A = utils::get_parameter_real(p, "duct_common", "NBC_alpha_A", out);
+  P.NBC.alpha_B = utils::get_parameter_real(p, "duct_common", "NBC_alpha_B", out);
   P.NBC.k5_p = utils::get_parameter_real(p, "duct_common", "NBC_k5_p", out);
   P.NBC.k5_m = utils::get_parameter_real(p, "duct_common", "NBC_k5_m", out);
   P.NBC.k6_p = utils::get_parameter_real(p, "duct_common", "NBC_k6_p", out);
