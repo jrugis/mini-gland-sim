@@ -80,10 +80,10 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   p = parent->p;  // pointer to ini reader object on parent
   get_parameters();
 
-/*
   // mesh stuff (each cell has it's own mesh data, lumen segments here)
   process_mesh_info();
 
+/*
   // setup initial conditions
   setup_IC();
 
@@ -207,6 +207,63 @@ int cDuct::get_nvars() {
 
 void cDuct::process_mesh_info() {
   out << "<Duct> process mesh info..." << std::endl;
+
+  // segment is the sections of duct provided in the mesh file
+  int n_seg = parent->ltree->segs.rows();
+  out << "<Duct> number of segments = " << n_seg << std::endl;
+
+  // segments are indexed from node 0 or duct outlet
+  Eigen::VectorXd seg_length(n_seg);
+  seg_length = (parent->ltree->nodes(parent->ltree->segs.col(0), Eigen::all) -
+                parent->ltree->nodes(parent->ltree->segs.col(1), Eigen::all)).rowwise().norm();
+  out << "<Duct> segment lengths = " << seg_length.transpose() << std::endl;
+
+  // discs are further discretisation of the duct segments
+  int n_disc = 0;
+
+  // discs are also indexed from node 0
+  Eigen::VectorXd disc_length;
+
+  // keep track of the output segment/disc of each segment/disc, in terms of water flow
+  Eigen::VectorXd seg_out_vec;
+  Eigen::VectorXd disc_out_vec;
+
+  for (int i = 0; i < n_seg; i++) {
+    // number of discs in this segment
+    int n = ceil(seg_length(i) / L_int);
+    disc_length.conservativeResize(n_disc + n);
+
+    // the first n-1 discs have length L_int
+    disc_length(Eigen::seq(n_disc, Eigen::last-1)).array() = L_int;
+
+    // the last disc has the remainder as length
+    if (fmod(seg_length(i), L_int) != 0) {
+      disc_length(n_disc+n-1) = fmod(seg_length(i), L_int);
+    } else {
+      disc_length(n_disc+n-1) = L_int;
+    }
+
+
+
+
+    n_disc += n;
+  }
+
+  out << "<Duct> total number of discs = " << n_disc << std::endl;
+  out << "<Duct> disc lengths = " << disc_length.transpose() << std::endl;
+
+
+
+
+
+
+
+
+
+
+
+/*
+
   lumen_prop.L = L_int;  // discretisation interval
   // min/max z coord (was read from mesh, changed to match matlab)
 //  double lumen_start = std::min(vertex_out(2), vertex_in(2));
@@ -238,6 +295,7 @@ void cDuct::process_mesh_info() {
     out << "  " << lumen_prop.segment[i];
   }
   out << std::endl;
+*/
 }
 
 void cDuct::setup_IC() {
