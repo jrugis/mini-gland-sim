@@ -224,14 +224,23 @@ void cDuct::process_mesh_info() {
   // discs are also indexed from node 0
   Eigen::VectorXd disc_length;
 
+  // which segment the disc belongs to
+  Eigen::VectorXd d_s_Vec;
+  Eigen::VectorXd disc_X_area;
+
   // keep track of the output segment/disc of each segment/disc, in terms of water flow
-  Eigen::VectorXd seg_out_vec;
-  Eigen::VectorXd disc_out_vec;
+  Eigen::VectorXi seg_out_Vec = Eigen::VectorXi::Constant(n_seg, -1);
+  Eigen::VectorXi disc_out_Vec;
 
   for (int i = 0; i < n_seg; i++) {
     // number of discs in this segment
     int n = ceil(seg_length(i) / L_int);
+
+    // resize arrays
     disc_length.conservativeResize(n_disc + n);
+    d_s_Vec.conservativeResize(n_disc + n);
+    disc_X_area.conservativeResize(n_disc + n);
+    disc_out_Vec.conservativeResize(n_disc + n);  // TODO: should this be initialised to something...
 
     // the first n-1 discs have length L_int
     disc_length(Eigen::seq(n_disc, Eigen::last-1)).array() = L_int;
@@ -243,19 +252,68 @@ void cDuct::process_mesh_info() {
       disc_length(n_disc+n-1) = L_int;
     }
 
+    // record the duct segment the discs belongs to
+    d_s_Vec(Eigen::seq(n_disc, Eigen::last)).array() = i;  // NOTE: we're storing zero-based index, whereas matlab stores 1-based
 
+    // disc_mid_point is used to interpolate disc radius
+    Eigen::VectorXd disc_mid_point = Eigen::VectorXd::Zero(n);
+    double disc_length_sum = 0.0;
+    for (int j = 0; j < n; j++) {
+      disc_mid_point(j) = disc_length(j) / 2.0 + disc_length_sum;
+      disc_length_sum += disc_length(j);
+    }
+    out << "<Duct> disc_mid_point = " << disc_mid_point.transpose() << std::endl;
+    double radii_this = parent->ltree->radii(i);
+    double radii_next = parent->ltree->radii(i+1);
+    disc_X_area(Eigen::seq(n_disc, Eigen::last)).array() = M_PI *
+        (radii_this + (radii_next - radii_this) / seg_length(i) * disc_mid_point.array()).array().pow(2);
 
+    // seg_out(i) is the output segment of duct segment i
+    // i.e. seg_out(2) = 1, the output segment of segment 2 is 1.
+    // seg_out = find(segments(:,1) == segments(i,2)); 
+    // find the input node that equals the output node of the current segment.
+    // TODO: can the be more than one seg_out or is it always a single value
+    int seg_out = -1;
+    for (int j = 0; j < n_seg; j++) {
+      if (parent->ltree->segs(j, 0) == parent->ltree->segs(i, 1)) {
+        seg_out = j;
+        break;
+      }
+    }
+    out << "<Duct> seg_out for segment " << i << " is " << seg_out << std::endl;
 
+    // if there is an output segment, or it is not the last segment
+    if (seg_out != -1) {
+      seg_out_Vec(i) = seg_out;
+
+      // find the disc index of the corresponding output segment
+      // the output disc of the first disc is the last disc of the output segment
+      // (first - close to node 0, last - far from node 0)
+      int seg_out_disc = -1;
+      for (int j = 0; j < n_disc + n; j++) {
+        if (d_s_Vec(j) == seg_out) {
+          seg_out_disc = j;
+        }
+      }
+      disc_out_Vec(n_disc) = seg_out_disc;
+    } else {
+      disc_out_Vec(n_disc) = -1;  // TODO: not sure if required
+    }
+    // the other discs in the segment are consecutive
+    for (int j = 1; j < n; j++) {
+      disc_out_Vec(n_disc + j) = n_disc + j - 1;
+    }
+
+    // increment disc counter
     n_disc += n;
   }
 
   out << "<Duct> total number of discs = " << n_disc << std::endl;
   out << "<Duct> disc lengths = " << disc_length.transpose() << std::endl;
-
-
-
-
-
+  out << "<Duct> d_s_Vec = " << d_s_Vec.transpose() << std::endl;
+  out << "<Duct> disc_X_area = " << disc_X_area.transpose() << std::endl;
+  out << "<Duct> disc_out_Vec = " << disc_out_Vec.transpose() << std::endl;
+  out << "<Duct> seg_out_Vec = " << seg_out_Vec.transpose() << std::endl;
 
 
 
