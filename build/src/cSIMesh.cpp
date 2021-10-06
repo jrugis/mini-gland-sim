@@ -17,8 +17,8 @@ cSIMesh::cSIMesh(std::string fname, std::ofstream& out)
 {
   std::ifstream mesh_file;
   utils::mesh_open(mesh_file, fname, out);                 // open the mesh file
-  int nverts = utils::mesh_get_count(mesh_file, "vertex"); // get mesh vertex count
-  int nfaces = utils::mesh_get_count(mesh_file, "face");   // get mesh face count
+  nverts = utils::mesh_get_count(mesh_file, "vertex"); // get mesh vertex count
+  nfaces = utils::mesh_get_count(mesh_file, "face");   // get mesh face count
   utils::mesh_end_header(mesh_file);                       // skip over the rest of the header
   out << "<CMesh> number of vertices: " << nverts << std::endl;
   out << "<CMesh> number of faces: " << nfaces << std::endl;
