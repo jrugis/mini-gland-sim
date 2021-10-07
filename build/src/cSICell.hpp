@@ -50,9 +50,9 @@ public:
   const double get_min_z() { return min_z; }
   const double get_max_z() { return max_z; }
   const double get_mean_z() { return mean_z; }
-  void process_mesh_info(std::vector<double>& lumen_segment);
-  void f_ODE(const duct::ArrayNFC &xl, const duct::lumen_prop_t &lumen_prop);
-  void init(duct::parameters_t &parent_P);
+  void process_mesh_info();
+  void f_ODE(const duct::ArrayNFC &xl);
+  void setup(duct::parameters_t &parent_P);
   const double compute_electroneutrality_check();
 
 protected:
@@ -77,7 +77,6 @@ private:
   scell::scaled_rates_t scaled_rates;
   void setup_parameters(duct::parameters_t &parent_P);
   void setup_IC();
-  void init_const();
   void setup_arrays();
   Array1Nd Na_A, K_A, Cl_A, HCO_A, H_A, CO_A;  // intermediate calculation arrays as members for performance
   Array1Nd J_A, J_CDF_A, J_buf_A, J_NHE_A, J_AE2_A;

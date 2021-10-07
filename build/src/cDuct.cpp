@@ -67,7 +67,7 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
 
   // search the mesh directory for striated and intercalated cell meshes
   for (const auto &file : std::filesystem::directory_iterator(MESH_FILE_DIR)){
-	std::string fpath = std::filesystem::path(file.path());
+    std::string fpath = std::filesystem::path(file.path());
     if(fpath.find("Cell_I") != std::string::npos) icells.push_back(new cSICell(this, fpath, INTERCALATED));
     if(fpath.find("Cell_S") != std::string::npos) scells.push_back(new cSICell(this, fpath, STRIATED));
   }
@@ -80,16 +80,21 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   p = parent->p;  // pointer to ini reader object on parent
   get_parameters();
 
-  // mesh stuff (each cell has it's own mesh data, lumen segments here)
+  // setup cells
+  for (cSICell* scell : scells) {
+    scell->setup(P);
+  }
+
+  // mesh stuff (each cell has its own mesh data, lumen segments here)
   process_mesh_info();
 
-/*
   // setup initial conditions
   setup_IC();
 
   // setup arrays for ODE calculation
   setup_arrays();
 
+/*
   // setup the cells too
   Eigen::VectorXf cellz(nscells);
   for (int i = 0; i < nscells; i++) {
@@ -174,6 +179,7 @@ cDuct::~cDuct()
 }
 
 void cDuct::distribute_x(const Array1Nd &x_in) {
+/*
   int n_c = scells.size();
   int n_l = lumen_prop.n_int;
   for (int i = 0; i < n_c; i++) {
@@ -184,9 +190,11 @@ void cDuct::distribute_x(const Array1Nd &x_in) {
   for (int i = 0; i < n_l; i++) {
     x_l.col(i) = x_in(Eigen::seq(s_l+i*LUMENALCOUNT, s_l+(i+1)*LUMENALCOUNT-1));
   }
+*/
 }
 
 void cDuct::gather_x(Array1Nd &x_out) {
+/*
   int n_c = scells.size();
   int n_l = lumen_prop.n_int;
   for (int i = 0; i < n_c; i++) {
@@ -196,13 +204,15 @@ void cDuct::gather_x(Array1Nd &x_out) {
   for (int i = 0; i < n_l; i++) {
     x_out(0, Eigen::seq(s_l+i*LUMENALCOUNT, s_l+(i+1)*LUMENALCOUNT-1)) = x_l.col(i);
   }
-
+*/
 }
 int cDuct::get_nvars() {
+/*
   int n_sc = scells.size();
   int n_l = lumen_prop.n_int;
   int nvars = n_sc * CELLULARCOUNT + n_l * LUMENALCOUNT;
   return nvars;
+*/
 }
 
 void cDuct::process_mesh_info() {
@@ -219,18 +229,13 @@ void cDuct::process_mesh_info() {
   out << "<Duct> segment lengths = " << seg_length.transpose() << std::endl;
 
   // discs are further discretisation of the duct segments
-  int n_disc = 0;
-
-  // discs are also indexed from node 0
-  Eigen::VectorXd disc_length;
+  n_disc = 0;
 
   // which segment the disc belongs to
   Eigen::VectorXd d_s_Vec;
-  Eigen::VectorXd disc_X_area;
 
   // keep track of the output segment/disc of each segment/disc, in terms of water flow
   Eigen::VectorXi seg_out_Vec = Eigen::VectorXi::Constant(n_seg, -1);
-  Eigen::VectorXi disc_out_Vec;
 
   for (int i = 0; i < n_seg; i++) {
     // number of discs in this segment
@@ -307,6 +312,7 @@ void cDuct::process_mesh_info() {
     // increment disc counter
     n_disc += n;
   }
+  disc_volume.array() = disc_X_area.array() * disc_length.array();
 
   out << "<Duct> total number of discs = " << n_disc << std::endl;
   out << "<Duct> disc lengths = " << disc_length.transpose() << std::endl;
@@ -314,8 +320,12 @@ void cDuct::process_mesh_info() {
   out << "<Duct> disc_X_area = " << disc_X_area.transpose() << std::endl;
   out << "<Duct> disc_out_Vec = " << disc_out_Vec.transpose() << std::endl;
   out << "<Duct> seg_out_Vec = " << seg_out_Vec.transpose() << std::endl;
+  out << "<Duct> disc_volume = " << disc_volume.transpose() << std::endl;
 
-
+  // now for the cells
+  for (cSICell* scell : scells) {
+    scell->process_mesh_info();
+  }
 
 
 
@@ -357,10 +367,10 @@ void cDuct::process_mesh_info() {
 }
 
 void cDuct::setup_IC() {
-   x_l.resize(Eigen::NoChange, lumen_prop.n_int);
-   dxldt.resize(Eigen::NoChange, lumen_prop.n_int);
+   x_l.resize(Eigen::NoChange, n_disc);
+   dxldt.resize(Eigen::NoChange, n_disc);
 
-  for (int i = 0; i < lumen_prop.n_int; i++) {  // looping over lumen segments
+  for (int i = 0; i < n_disc; i++) {  // looping over lumen segments
     // lumenal initial concentration
     x_l(Na, i) = 143.5;  // TODO: move these to parameter file
     x_l(K, i) = 5.2;
@@ -508,7 +518,7 @@ void cDuct::step(double t, double dt)
 
 void cDuct::setup_arrays() {
   // setting up arrays once at the beginning for performance
-  int n_l = lumen_prop.n_int;
+  int n_l = n_disc;
 
   dwAdt.resize(Eigen::NoChange, n_l);
   v.resize(Eigen::NoChange, n_l);
@@ -519,6 +529,8 @@ void cDuct::setup_arrays() {
 void cDuct::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
   // populate x_l and x_c from x_in
   distribute_x(x_in);
+
+/*
 
   int n_c = scells.size();
   int n_l = lumen_prop.n_int;
@@ -633,4 +645,5 @@ void cDuct::save_results() {
   resultsh5.writeHyperslab(ef, id + "/electroneutrality", h5pp::Hyperslab({outputnum, 0}, {1, nc}));
 
   outputnum++;
+*/
 }

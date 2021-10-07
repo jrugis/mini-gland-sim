@@ -119,15 +119,6 @@ namespace duct {
     Array1FC CIC;  // cellular initial concentration
     Array1FC LIC;  // lumenal initial concentration
   };
-
-  // lumen properties
-  struct lumen_prop_t {
-    std::vector<double> segment;
-    double volume;
-    double X_area;
-    int n_int;
-    double L;
-  };
 }
 
 class cMiniGland;
@@ -150,6 +141,12 @@ protected:
   int nlsegs;           // number of duct lumen segments
   int ilsegs;           // index of first lumen segment
 
+  int n_disc;
+  Eigen::VectorXd disc_length;
+  Eigen::VectorXd disc_volume;
+  Eigen::VectorXd disc_X_area;
+  Eigen::VectorXi disc_out_Vec;
+
 private:
   cMiniGland* parent;
   std::vector<cSICell*> icells;    // the intercalated cells associated with this duct
@@ -158,7 +155,6 @@ private:
   double PSflow;  // um3/s volumetric primary saliva flow rate
   duct::conc_t Conc;
   duct::parameters_t P;
-  duct::lumen_prop_t lumen_prop;
   duct::ArrayNFC x_l, dxldt;  // solution vector and derivative
   Array1Nd x, dxdt;
   Array1Nd dwAdt, v, v_up;

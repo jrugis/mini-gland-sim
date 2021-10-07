@@ -28,6 +28,24 @@ cSICell::cSICell(cDuct* _parent, std::string fname, cell_groups _cell_group) : p
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
   p = parent->p; // the parameters map
   mesh = new cSIMesh(fname, out);
+
+  // calc areas of different surface regions
+  api_area = 0.0;
+  baslat_area = 0.0;
+  napical = 0;
+  for (int i = 0; i < mesh->nfaces; i++) {
+    if (mesh->face_types(i) == APICAL) {
+      api_area += mesh->face_areas(i);
+      api_face_area.push_back(mesh->face_areas(i));
+      napical++;
+    }
+    else {  // basal or basolateral
+      baslat_area += mesh->face_areas(i);
+    }
+  }
+  out << "<SCell> num apical triangles = " << napical << std::endl;
+  out << "<SCell> api_area = " << api_area << std::endl;
+  out << "<SICell> baslat_area = " << baslat_area << std::endl;
 }
 
 cSICell::~cSICell() {
@@ -35,10 +53,9 @@ cSICell::~cSICell() {
   out.close();
 }
 
-void cSICell::init(duct::parameters_t &parent_P) {
+void cSICell::setup(duct::parameters_t &parent_P) {
   // init in separate function so parent initialiser has completed
   setup_parameters(parent_P);
-  init_const();
   setup_IC();
 }
 
@@ -96,7 +113,11 @@ void cSICell::setup_parameters(duct::parameters_t &parent_P) {
   P.L_B = utils::get_parameter_real(p, "striated", "L_B", out);
 }
 
-void cSICell::process_mesh_info(std::vector<double>& lumen_segment) {
+void cSICell::process_mesh_info() {
+
+
+
+/*
   // mean z coordinate of each apical triangle vertex
   std::vector<double> api_coord_z_mean(napical);
   int api_count = 0;
@@ -174,26 +195,8 @@ void cSICell::process_mesh_info(std::vector<double>& lumen_segment) {
 
   // set up arrays for f_ODE calculation
   setup_arrays();
-}
 
-void cSICell::init_const(){
-  // calc areas of different surface regions
-  api_area = 0.0;
-  baslat_area = 0.0;
-  napical = 0;
-  for (int i = 0; i < mesh->nfaces; i++) {
-    if (mesh->face_types(i) == APICAL) {
-      api_area += mesh->face_areas(i);
-      api_face_area.push_back(mesh->face_areas(i));
-      napical++;
-    }
-    else {  // basal or basolateral
-      baslat_area += mesh->face_areas(i);
-    }
-  }
-  out << "<SCell> num apical triangles = " << napical << std::endl;
-  out << "<SCell> api_area = " << api_area << std::endl;
-  out << "<SCell> baslat_area = " << baslat_area << std::endl;
+*/
 }
 
 void cSICell::setup_IC(){
@@ -209,7 +212,8 @@ void cSICell::setup_IC(){
   x_c(8) = 1.28;
 }
 
-void cSICell::f_ODE(const duct::ArrayNFC &x_l, const duct::lumen_prop_t &lumen_prop) {
+void cSICell::f_ODE(const duct::ArrayNFC &x_l) {
+/*
   // constant parameters
   double Na_B = P.ConI(duct::Na);
   double K_B = P.ConI(duct::K);
@@ -477,6 +481,7 @@ void cSICell::f_ODE(const duct::ArrayNFC &x_l, const duct::lumen_prop_t &lumen_p
   out << "HC flux A: %.8d nA " <<  I_CFTR_B*1e-6 - J_AE2_A*F_const*1e-9 - J_buf_A*F_const*w_A*1e-9 << std::endl;
   out << "================ END DEBUG =================" << std::endl;
 #endif
+*/
 }
 
 const double cSICell::compute_electroneutrality_check() {
