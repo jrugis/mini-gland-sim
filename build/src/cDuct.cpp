@@ -179,9 +179,8 @@ cDuct::~cDuct()
 }
 
 void cDuct::distribute_x(const Array1Nd &x_in) {
-/*
   int n_c = scells.size();
-  int n_l = lumen_prop.n_int;
+  int n_l = n_disc;
   for (int i = 0; i < n_c; i++) {
     int start = i * CELLULARCOUNT;
     scells[i]->x_c.row(0) = x_in(0, Eigen::seq(start, start+CELLULARCOUNT-1));
@@ -190,13 +189,11 @@ void cDuct::distribute_x(const Array1Nd &x_in) {
   for (int i = 0; i < n_l; i++) {
     x_l.col(i) = x_in(Eigen::seq(s_l+i*LUMENALCOUNT, s_l+(i+1)*LUMENALCOUNT-1));
   }
-*/
 }
 
 void cDuct::gather_x(Array1Nd &x_out) {
-/*
   int n_c = scells.size();
-  int n_l = lumen_prop.n_int;
+  int n_l = n_disc;
   for (int i = 0; i < n_c; i++) {
     x_out(0, Eigen::seq(i*CELLULARCOUNT, (i+1)*CELLULARCOUNT-1)) = scells[i]->x_c.row(0);
   }
@@ -204,15 +201,12 @@ void cDuct::gather_x(Array1Nd &x_out) {
   for (int i = 0; i < n_l; i++) {
     x_out(0, Eigen::seq(s_l+i*LUMENALCOUNT, s_l+(i+1)*LUMENALCOUNT-1)) = x_l.col(i);
   }
-*/
 }
 int cDuct::get_nvars() {
-/*
   int n_sc = scells.size();
-  int n_l = lumen_prop.n_int;
+  int n_l = n_disc;
   int nvars = n_sc * CELLULARCOUNT + n_l * LUMENALCOUNT;
   return nvars;
-*/
 }
 
 void cDuct::process_mesh_info() {
@@ -232,7 +226,7 @@ void cDuct::process_mesh_info() {
   n_disc = 0;
 
   // which segment the disc belongs to
-  Eigen::VectorXd d_s_Vec;
+  Eigen::VectorXi d_s_Vec;
 
   // keep track of the output segment/disc of each segment/disc, in terms of water flow
   Eigen::VectorXi seg_out_Vec = Eigen::VectorXi::Constant(n_seg, -1);
@@ -324,7 +318,7 @@ void cDuct::process_mesh_info() {
 
   // now for the cells
   for (cSICell* scell : scells) {
-    scell->process_mesh_info();
+    scell->process_mesh_info(seg_out_Vec, seg_length, d_s_Vec);
   }
 
 
@@ -530,10 +524,10 @@ void cDuct::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
   // populate x_l and x_c from x_in
   distribute_x(x_in);
 
-/*
 
   int n_c = scells.size();
-  int n_l = lumen_prop.n_int;
+  int n_l = n_disc;
+/*
 
   // constant parameters
   double L = lumen_prop.L;

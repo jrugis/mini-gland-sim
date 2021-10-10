@@ -8,7 +8,7 @@
 #include <cmath>
 #include <iostream>
 #include <string>
-#include <unordered_set>
+#include <set>
 #include <algorithm>
 #include <cmath>
 #include <iomanip>
@@ -26,25 +26,27 @@ cSICell::cSICell(cDuct* _parent, std::string fname, cell_groups _cell_group) : p
   id = "cell_" + fname.substr(fname.find("Cell")+5,4); // NOTE: one based cell id
   cell_number = std::stoi(id.substr(6,3)); 
   out.open(id + DIAGNOSTIC_FILE_EXTENSION);
+  out << std::fixed << std::setprecision(16);
   p = parent->p; // the parameters map
   mesh = new cSIMesh(fname, out);
 
   // calc areas of different surface regions
+  api_face_area.resize(Eigen::NoChange, mesh->nfaces);
   api_area = 0.0;
   baslat_area = 0.0;
   napical = 0;
   for (int i = 0; i < mesh->nfaces; i++) {
     if (mesh->face_types(i) == APICAL) {
       api_area += mesh->face_areas(i);
-      api_face_area.push_back(mesh->face_areas(i));
-      napical++;
+      api_face_area(napical++) = mesh->face_areas(i);
     }
     else {  // basal or basolateral
       baslat_area += mesh->face_areas(i);
     }
   }
-  out << "<SCell> num apical triangles = " << napical << std::endl;
-  out << "<SCell> api_area = " << api_area << std::endl;
+  api_face_area.conservativeResize(napical);
+  out << "<SICell> num apical triangles = " << napical << std::endl;
+  out << "<SICell> api_area = " << api_area << std::endl;
   out << "<SICell> baslat_area = " << baslat_area << std::endl;
 }
 
@@ -61,33 +63,33 @@ void cSICell::setup(duct::parameters_t &parent_P) {
 
 void cSICell::setup_arrays() {
   // setting up arrays once at the beginning for performance
-  int n_loc_int = loc_int.size();
-  Na_A.resize(Eigen::NoChange, n_loc_int);
-  K_A.resize(Eigen::NoChange, n_loc_int);
-  Cl_A.resize(Eigen::NoChange, n_loc_int);
-  HCO_A.resize(Eigen::NoChange, n_loc_int);
-  H_A.resize(Eigen::NoChange, n_loc_int);
-  CO_A.resize(Eigen::NoChange, n_loc_int);
-  J_A.resize(Eigen::NoChange, n_loc_int);
-  J_CDF_A.resize(Eigen::NoChange, n_loc_int);
-  J_buf_A.resize(Eigen::NoChange, n_loc_int);
-  J_NHE_A.resize(Eigen::NoChange, n_loc_int);
-  J_AE2_A.resize(Eigen::NoChange, n_loc_int);
-  V_A_Cl.resize(Eigen::NoChange, n_loc_int);
-  I_CFTR.resize(Eigen::NoChange, n_loc_int);
-  V_A_HCO.resize(Eigen::NoChange, n_loc_int);
-  I_CFTR_B.resize(Eigen::NoChange, n_loc_int);
-  V_A_K.resize(Eigen::NoChange, n_loc_int);
-  I_BK.resize(Eigen::NoChange, n_loc_int);
-  V_A_Na.resize(Eigen::NoChange, n_loc_int);
-  I_ENaC.resize(Eigen::NoChange, n_loc_int);
-  J_NKA_A.resize(Eigen::NoChange, n_loc_int);
-  V_P_Na.resize(Eigen::NoChange, n_loc_int);
-  V_P_K.resize(Eigen::NoChange, n_loc_int);
-  V_P_Cl.resize(Eigen::NoChange, n_loc_int);
-  I_P_Na.resize(Eigen::NoChange, n_loc_int);
-  I_P_K.resize(Eigen::NoChange, n_loc_int);
-  I_P_Cl.resize(Eigen::NoChange, n_loc_int);
+  int n_loc_disc = loc_disc.size();
+  Na_A.resize(Eigen::NoChange, n_loc_disc);
+  K_A.resize(Eigen::NoChange, n_loc_disc);
+  Cl_A.resize(Eigen::NoChange, n_loc_disc);
+  HCO_A.resize(Eigen::NoChange, n_loc_disc);
+  H_A.resize(Eigen::NoChange, n_loc_disc);
+  CO_A.resize(Eigen::NoChange, n_loc_disc);
+  J_A.resize(Eigen::NoChange, n_loc_disc);
+  J_CDF_A.resize(Eigen::NoChange, n_loc_disc);
+  J_buf_A.resize(Eigen::NoChange, n_loc_disc);
+  J_NHE_A.resize(Eigen::NoChange, n_loc_disc);
+  J_AE2_A.resize(Eigen::NoChange, n_loc_disc);
+  V_A_Cl.resize(Eigen::NoChange, n_loc_disc);
+  I_CFTR.resize(Eigen::NoChange, n_loc_disc);
+  V_A_HCO.resize(Eigen::NoChange, n_loc_disc);
+  I_CFTR_B.resize(Eigen::NoChange, n_loc_disc);
+  V_A_K.resize(Eigen::NoChange, n_loc_disc);
+  I_BK.resize(Eigen::NoChange, n_loc_disc);
+  V_A_Na.resize(Eigen::NoChange, n_loc_disc);
+  I_ENaC.resize(Eigen::NoChange, n_loc_disc);
+  J_NKA_A.resize(Eigen::NoChange, n_loc_disc);
+  V_P_Na.resize(Eigen::NoChange, n_loc_disc);
+  V_P_K.resize(Eigen::NoChange, n_loc_disc);
+  V_P_Cl.resize(Eigen::NoChange, n_loc_disc);
+  I_P_Na.resize(Eigen::NoChange, n_loc_disc);
+  I_P_K.resize(Eigen::NoChange, n_loc_disc);
+  I_P_Cl.resize(Eigen::NoChange, n_loc_disc);
 }
 
 void cSICell::setup_parameters(duct::parameters_t &parent_P) {
@@ -113,60 +115,138 @@ void cSICell::setup_parameters(duct::parameters_t &parent_P) {
   P.L_B = utils::get_parameter_real(p, "striated", "L_B", out);
 }
 
-void cSICell::process_mesh_info() {
-
-
-
-/*
-  // mean z coordinate of each apical triangle vertex
-  std::vector<double> api_coord_z_mean(napical);
-  int api_count = 0;
+void cSICell::process_mesh_info(const Eigen::VectorXi &seg_out_Vec, const Eigen::VectorXd &seg_length, const Eigen::VectorXi &d_s_Vec) {
+  // duct indices
+  std::set<int> duct_seg, duct_seg_tot;
   for (int i = 0; i < mesh->nfaces; i++) {
+    // the duct index covered by the cell
+    duct_seg_tot.insert(mesh->duct_idx(i));
+
+    // the duct index corresponding to the apical triangles
     if (mesh->face_types(i) == APICAL) {
-      double zsum = 0.0;
-      for (int j = 0; j < 3; j++) {  // for each vertex
-        int vertidx = mesh->faces(i, j);
-        zsum += mesh->verts(vertidx, 2);
-      }
-      api_coord_z_mean[api_count++] = zsum / 3.0;
+      duct_seg.insert(mesh->duct_idx(i));
     }
   }
-
-  // sort apical triangles into corresponding lumen segments
-  api_lumen_conn.resize(napical, -1);
-  for (int i = 0; i < napical; i++) {
-    int nsegments = lumen_segment.size() - 1;
-    for (int j = 0; j < nsegments; j++) {
-      if ((lumen_segment[j] <= api_coord_z_mean[i]) && (api_coord_z_mean[i] < lumen_segment[j+1])) {
-        api_lumen_conn[i] = j;
-        break;
-      }
-    }
-  }
-
-  // find the unique lumen segments for this cell
-  std::unordered_set<int> loc_int_set(api_lumen_conn.begin(), api_lumen_conn.end());
-  loc_int = std::vector<int>(loc_int_set.begin(), loc_int_set.end());
-  std::sort(loc_int.begin(), loc_int.end());
-  out << "<SCell> " << loc_int.size() <<  " unique lumen segments for this cell:";
-  for (auto const &e: loc_int) {
-    out << " " << e;
-  }
+  out << "<SICell> duct_seg_tot:";
+  for (int idx : duct_seg_tot) out << " " << idx;
+  out << std::endl;
+  out << "<SICell> duct_seg:";
+  for (int idx : duct_seg) out << " " << idx;
   out << std::endl;
 
-  // loop through the lumen segments to calculate areas per segment
-  int n_loc_int = loc_int.size();
-  api_area_int.resize(Eigen::NoChange, n_loc_int);
-  api_area_int.setZero();
-  for (int i = 0; i < napical; i++) {
-    auto it = std::find(loc_int.begin(), loc_int.end(), api_lumen_conn[i]);
-    int idx = std::distance(loc_int.begin(), it);
-    api_area_int(0, idx) += api_face_area[i];
+  // convert distance along duct segment to distance from node 0
+  Array1Nd total_dist_along_duct(mesh->nfaces);
+
+  // Since triangle dist_along_duct is segment based, we need to consider segment by segment
+  for (int s : duct_seg_tot) {
+    // MATLAB: tri_seg_idx = find(duct_idx == s);
+    std::vector<int> tri_seg_idx;
+    for (int i = 0; i < mesh->nfaces; i++) {
+      if (mesh->duct_idx(i) == s) {
+        tri_seg_idx.push_back(i);
+      }
+    }
+    double dist_start_seg = calc_dist_start_seg(s, seg_out_Vec, seg_length);
+
+		// calculate the total distance
+    //   - discs are indexed from node 0 of the whole duct
+    //   - in contrast, the triangle's distance along duct is measured from acinus
+    //   - thus dist along duct needs to be reversed.
+    // total_dist_along_duct(tri_seg_idx) = seg_length(s) - dist_along_duct(tri_seg_idx) + dist_start_seg;
+    total_dist_along_duct(tri_seg_idx) = seg_length(s) - mesh->dist_along_duct.array()(tri_seg_idx) + dist_start_seg;
   }
-  out << "<SCell> lumen segment areas:";
-  for (auto const &e: api_area_int.reshaped()) {
-    out << "  " << e;
+
+  // the average distance along the duct for a cell
+  mean_dist = total_dist_along_duct.mean();
+
+  // array for disc apical areas
+  api_area_discs.resize(parent->n_disc);
+  api_area_discs.setZero();
+
+  // For loop to put apical triangles into the corresponding discs, based on
+  // their total distance along duct.
+  // This needs to be done segment by segment, in case of duct branches.
+  // (triangles on two branches have similar distance but belong to diff faces)
+  for (int s : duct_seg) {
+    out << "DEBUG duct_seg loop " << s << std::endl;
+    // apical indices corresponding to segment s
+    std::vector<int> tri_seg_idx;
+    for (int i = 0; i < mesh->nfaces; i++) {
+      if (mesh->face_types(i) == APICAL && mesh->duct_idx(i) == s) {
+        tri_seg_idx.push_back(i);
+      }
+    }
+    Array1Nd total_dist_along_duct_seg(tri_seg_idx.size());
+    total_dist_along_duct_seg = total_dist_along_duct(tri_seg_idx);
+    out << "  DEBUG tri_seg_idx.size() = " << tri_seg_idx.size() << std::endl;
+
+    // find all discs in segment s
+    std::vector<int> all_discs_in_seg;
+    for (int i = 0; i < parent->n_disc; i++) {
+      if (d_s_Vec(i) == s) {
+        all_discs_in_seg.push_back(i);
+      }
+    }
+    int distal_disc = *std::min_element(all_discs_in_seg.begin(), all_discs_in_seg.end());  // close to node 0 disc
+    int proxim_disc = *std::max_element(all_discs_in_seg.begin(), all_discs_in_seg.end());  // far from node 0 disc
+    out << "  DEBUG distal and proxim discs: " << distal_disc << ", " << proxim_disc << std::endl;
+
+    // make an array of bins for apical triangle distances, using the discs
+    // consider all the discs from node 0 to segment s
+    double dist_start_seg = calc_dist_start_seg(s, seg_out_Vec, seg_length);
+    Array1Nd disc_edges(proxim_disc + 2);  // +2 because indexing from 0
+    disc_edges.setZero();
+    disc_edges(distal_disc) = dist_start_seg;
+    for (int k = distal_disc + 1; k < proxim_disc + 2; k++) {
+      disc_edges(k) = disc_edges(k - 1) + parent->disc_length(k - 1);
+    }
+    disc_edges(proxim_disc + 1) += 1e-12;  // for the last bin, allow equal on upper edge too
+    out << "  DEBUG disc_edges (len=" << proxim_disc+1 << "):";
+    for (auto val : disc_edges) out << " " << val;
+    out << std::endl;
+
+    // NOTE: using "distal_disc - 1" due to some faces belonging below distal_disc (not sure whether this should be happening)
+    distal_disc = std::max(0, distal_disc - 1);
+    // drop the distance along the duct into the disc edge bins
+    MatrixN1i api_disc_conn(tri_seg_idx.size());
+    api_disc_conn.setConstant(-1);
+    for (std::vector<int>::size_type i = 0; i < tri_seg_idx.size(); i++) {
+      bool binned = false;
+      for (int j = distal_disc; j < proxim_disc + 1; j++) {
+        if ((disc_edges(j) <= total_dist_along_duct_seg(i)) && (total_dist_along_duct_seg(i) < disc_edges(j+1))) {
+          api_disc_conn(i) = j;
+          binned = true;
+          break;
+        }
+      }
+      if (not binned) {
+        out << "ERROR could not discretise " << i << " of " << tri_seg_idx.size() << ": " << total_dist_along_duct_seg(i) << std::endl;
+        utils::fatal_error("failed to discretise discs", out);
+      }
+    }
+    out << "  DEBUG api_disc_conn:";
+    for (auto val : api_disc_conn) out << " " << val;
+    out << std::endl;
+
+    for (std::vector<int>::size_type i = 0; i < tri_seg_idx.size(); i++) {
+      // disc index for this apical triangle
+      int disc_idx = api_disc_conn(i);
+      int face_idx = tri_seg_idx[i];
+      api_area_discs(disc_idx) += mesh->face_areas(face_idx);
+    }
   }
+  out << "  DEBUG api_area_discs:";
+  for (auto v : api_area_discs) out << " " << v;
+  out << std::endl;
+
+  // discs with faces
+  for (int i = 0; i < parent->n_disc; i++) {
+    if (api_area_discs(i) > 0.0) {
+      loc_disc.push_back(i);
+    }
+  }
+  out << "  DEBUG loc_disc:";
+  for (auto v : loc_disc) out << " " << v;
   out << std::endl;
 
   // scale the rates based on cell surface areas
@@ -187,16 +267,29 @@ void cSICell::process_mesh_info() {
   scaled_rates.NKA.alpha_B = P.NKA.alpha_B * A / A_B;
 
   // setup ode function arrays
-  int n_l = lumen_segment.size() - 1;
-  dwAdt.resize(Eigen::NoChange, n_l);
+  dwAdt.resize(Eigen::NoChange, parent->n_disc);
   dwAdt.setZero();
-  dxldt.resize(Eigen::NoChange, n_l);
+  dxldt.resize(Eigen::NoChange, parent->n_disc);
   dxldt.setZero();
 
   // set up arrays for f_ODE calculation
   setup_arrays();
+}
 
-*/
+double cSICell::calc_dist_start_seg(const int seg_idx, const Eigen::VectorXi &seg_out_Vec, const Eigen::VectorXd &seg_length) {
+  // distance_start = distance from node 0 at the start of seg_idx
+  double dist_start_seg = 0.0;
+
+  // starting from the current segment, tracing its output segment until the root
+  int k = seg_idx;
+  while (seg_out_Vec(k) != -1) {
+    k = seg_out_Vec(k);
+
+    // adding up the output segment lengths
+    dist_start_seg += seg_length(k);
+  }
+
+  return dist_start_seg;
 }
 
 void cSICell::setup_IC(){
@@ -213,7 +306,6 @@ void cSICell::setup_IC(){
 }
 
 void cSICell::f_ODE(const duct::ArrayNFC &x_l) {
-/*
   // constant parameters
   double Na_B = P.ConI(duct::Na);
   double K_B = P.ConI(duct::K);
@@ -222,6 +314,7 @@ void cSICell::f_ODE(const duct::ArrayNFC &x_l) {
   double H_B = P.ConI(duct::H);
   double CO_B = P.ConI(duct::CO);
 
+/*
   double w_A = lumen_prop.volume;
 //  double L = lumen_prop.L;
 //  double A_L = lumen_prop.X_area;
