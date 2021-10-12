@@ -43,6 +43,7 @@ typedef Eigen::Vector3i Vector3i;
 typedef Eigen::Vector4i Vector4i;
 
 typedef Eigen::Array<double, 1, Eigen::Dynamic> Array1Nd;
+typedef Eigen::Array<int, 1, Eigen::Dynamic> Array1Ni;
 
 //************************************************************************
 // thermodynamic constants

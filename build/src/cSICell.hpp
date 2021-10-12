@@ -47,13 +47,11 @@ public:
   duct::ArrayNFC dxldt;
   Array1Nd dwAdt;
   void step();
-  const double get_min_z() { return min_z; }
-  const double get_max_z() { return max_z; }
-  const double get_mean_z() { return mean_z; }
-  void process_mesh_info(const Eigen::VectorXi &seg_out_Vec, const Eigen::VectorXd &seg_length, const Eigen::VectorXi &d_s_Vec);
+  void process_mesh_info(const Array1Ni &seg_out_Vec, const Array1Nd &seg_length, const Array1Ni &d_s_Vec);
   void f_ODE(const duct::ArrayNFC &xl);
   void setup(duct::parameters_t &parent_P);
   const double compute_electroneutrality_check();
+  const double get_mean_z() { return mean_z; }
 
 protected:
 	  
@@ -71,21 +69,21 @@ private:
   double mean_dist;             // the average distance along the duct for the cell
   MatrixN1d api_area_discs;     // total apical triangle area corresponding to each disc
   int napical;                  // number of apical triangles
-  double min_z, max_z, mean_z;
+  double mean_z;                // mean z coordinate of the faces
   std::vector<int> api_lumen_conn;
-  Array1Nd api_face_area;
   std::vector<int> loc_disc;
   Array1Nd api_area_int;
   scell::scaled_rates_t scaled_rates;
   void setup_parameters(duct::parameters_t &parent_P);
   void setup_IC();
   void setup_arrays();
-  double calc_dist_start_seg(const int seg_idx, const Eigen::VectorXi &seg_out_Vec, const Eigen::VectorXd &seg_length);
+  double calc_dist_start_seg(const int seg_idx, const Array1Ni &seg_out_Vec, const Array1Nd &seg_length);
   Array1Nd Na_A, K_A, Cl_A, HCO_A, H_A, CO_A;  // intermediate calculation arrays as members for performance
-  Array1Nd J_A, J_CDF_A, J_buf_A, J_NHE_A, J_AE2_A;
+  Array1Nd J_A, J_CDF_A, J_buf_A, J_NHE_A, J_AE2_A, J_NBC_A;
   Array1Nd V_A_Cl, I_CFTR, V_A_HCO, I_CFTR_B, V_A_K;
   Array1Nd I_BK, V_A_Na, I_ENaC, J_NKA_A, V_P_Na, V_P_K, V_P_Cl;
   Array1Nd I_P_Na, I_P_K, I_P_Cl;
+  Array1Nd w_A, A_A_disc;
 };
 
 

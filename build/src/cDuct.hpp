@@ -142,10 +142,10 @@ protected:
   int ilsegs;           // index of first lumen segment
 
   int n_disc;
-  Eigen::VectorXd disc_length;
-  Eigen::VectorXd disc_volume;
-  Eigen::VectorXd disc_X_area;
-  Eigen::VectorXi disc_out_Vec;
+  Array1Nd disc_length;
+  Array1Nd disc_volume;
+  Array1Nd disc_X_area;
+  Array1Ni disc_out_Vec;
 
 private:
   cMiniGland* parent;
@@ -169,6 +169,7 @@ private:
   void gather_x(Array1Nd &x_out);
   void save_results();
   void setup_arrays();
+  double accum_fluid(const int duct_idx);
 };
 
 #endif /* CDUCT_H_ */

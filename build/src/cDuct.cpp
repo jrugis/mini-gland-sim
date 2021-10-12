@@ -94,20 +94,12 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   // setup arrays for ODE calculation
   setup_arrays();
 
-/*
   // setup the cells too
+  int nscells = scells.size();
   Eigen::VectorXf cellz(nscells);
   for (int i = 0; i < nscells; i++) {
-    cSICell *cell_striated = scells[i];
-
-    // initialise the cell
-    cell_striated->init(P);
-    
-    // process mesh info
-    cell_striated->process_mesh_info(lumen_prop.segment);
-
     // store centroid z coordinate for postprocessing
-    cellz(i) = static_cast<float>(cell_striated->get_mean_z());
+    cellz(i) = static_cast<float>(scells[i]->get_mean_z());
   }
 
   // allocate solver vectors
@@ -149,7 +141,7 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
 
   // store some attributes (output time interval, lumen vars, etc)
   resultsh5.writeAttribute(LUMENALCOUNT, "number of lumenal variables", id);
-  resultsh5.writeAttribute(lumen_prop.n_int, "number of lumen segments", id);
+  resultsh5.writeAttribute(n_disc, "number of lumen discs", id);
   resultsh5.writeAttribute(CELLULARCOUNT, "number of cellular variables", id);
   resultsh5.writeAttribute(nscells, "number of cells", id);
   double outputdt = delT * Tstride;
@@ -159,15 +151,14 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   resultsh5.writeDataset(cellz, id + "/zcells");
 
   // store lumen segments
-  Eigen::VectorXf segf(lumen_prop.n_int + 1);
-  for (int i = 0; i < lumen_prop.n_int + 1; i++) {
-    segf(i) = static_cast<float>(lumen_prop.segment[i]);
-  }
-  resultsh5.writeDataset(segf, id + "/segment");
+//  Eigen::VectorXf segf(n_disc + 1);
+//  for (int i = 0; i < lumen_prop.n_int + 1; i++) {
+//    segf(i) = static_cast<float>(lumen_prop.segment[i]);
+//  }
+//  resultsh5.writeDataset(segf, id + "/segment");
 
   // store t=0
   save_results();
-  */
 }
 
 cDuct::~cDuct()
@@ -217,19 +208,19 @@ void cDuct::process_mesh_info() {
   out << "<Duct> number of segments = " << n_seg << std::endl;
 
   // segments are indexed from node 0 or duct outlet
-  Eigen::VectorXd seg_length(n_seg);
+  Array1Nd seg_length(n_seg);
   seg_length = (parent->ltree->nodes(parent->ltree->segs.col(0), Eigen::all) -
                 parent->ltree->nodes(parent->ltree->segs.col(1), Eigen::all)).rowwise().norm();
-  out << "<Duct> segment lengths = " << seg_length.transpose() << std::endl;
+  out << "<Duct> segment lengths = " << seg_length << std::endl;
 
   // discs are further discretisation of the duct segments
   n_disc = 0;
 
   // which segment the disc belongs to
-  Eigen::VectorXi d_s_Vec;
+  Array1Ni d_s_Vec;
 
   // keep track of the output segment/disc of each segment/disc, in terms of water flow
-  Eigen::VectorXi seg_out_Vec = Eigen::VectorXi::Constant(n_seg, -1);
+  Array1Ni seg_out_Vec = Array1Ni::Constant(n_seg, -1);
 
   for (int i = 0; i < n_seg; i++) {
     // number of discs in this segment
@@ -242,7 +233,7 @@ void cDuct::process_mesh_info() {
     disc_out_Vec.conservativeResize(n_disc + n);  // TODO: should this be initialised to something...
 
     // the first n-1 discs have length L_int
-    disc_length(Eigen::seq(n_disc, Eigen::last-1)).array() = L_int;
+    disc_length(Eigen::seq(n_disc, Eigen::last-1)) = L_int;
 
     // the last disc has the remainder as length
     if (fmod(seg_length(i), L_int) != 0) {
@@ -252,20 +243,20 @@ void cDuct::process_mesh_info() {
     }
 
     // record the duct segment the discs belongs to
-    d_s_Vec(Eigen::seq(n_disc, Eigen::last)).array() = i;  // NOTE: we're storing zero-based index, whereas matlab stores 1-based
+    d_s_Vec(Eigen::seq(n_disc, Eigen::last)) = i;  // NOTE: we're storing zero-based index, whereas matlab stores 1-based
 
     // disc_mid_point is used to interpolate disc radius
-    Eigen::VectorXd disc_mid_point = Eigen::VectorXd::Zero(n);
+    Array1Nd disc_mid_point = Array1Nd::Zero(n);
     double disc_length_sum = 0.0;
     for (int j = 0; j < n; j++) {
       disc_mid_point(j) = disc_length(j) / 2.0 + disc_length_sum;
       disc_length_sum += disc_length(j);
     }
-    out << "<Duct> disc_mid_point = " << disc_mid_point.transpose() << std::endl;
+    out << "<Duct> disc_mid_point = " << disc_mid_point << std::endl;
     double radii_this = parent->ltree->radii(i);
     double radii_next = parent->ltree->radii(i+1);
-    disc_X_area(Eigen::seq(n_disc, Eigen::last)).array() = M_PI *
-        (radii_this + (radii_next - radii_this) / seg_length(i) * disc_mid_point.array()).array().pow(2);
+    disc_X_area(Eigen::seq(n_disc, Eigen::last)) = M_PI *
+        (radii_this + (radii_next - radii_this) / seg_length(i) * disc_mid_point).pow(2);
 
     // seg_out(i) is the output segment of duct segment i
     // i.e. seg_out(2) = 1, the output segment of segment 2 is 1.
@@ -306,58 +297,20 @@ void cDuct::process_mesh_info() {
     // increment disc counter
     n_disc += n;
   }
-  disc_volume.array() = disc_X_area.array() * disc_length.array();
+  disc_volume = disc_X_area * disc_length;
 
   out << "<Duct> total number of discs = " << n_disc << std::endl;
-  out << "<Duct> disc lengths = " << disc_length.transpose() << std::endl;
-  out << "<Duct> d_s_Vec = " << d_s_Vec.transpose() << std::endl;
-  out << "<Duct> disc_X_area = " << disc_X_area.transpose() << std::endl;
-  out << "<Duct> disc_out_Vec = " << disc_out_Vec.transpose() << std::endl;
-  out << "<Duct> seg_out_Vec = " << seg_out_Vec.transpose() << std::endl;
-  out << "<Duct> disc_volume = " << disc_volume.transpose() << std::endl;
+  out << "<Duct> disc lengths = " << disc_length << std::endl;
+  out << "<Duct> d_s_Vec = " << d_s_Vec << std::endl;
+  out << "<Duct> disc_X_area = " << disc_X_area << std::endl;
+  out << "<Duct> disc_out_Vec = " << disc_out_Vec << std::endl;
+  out << "<Duct> seg_out_Vec = " << seg_out_Vec << std::endl;
+  out << "<Duct> disc_volume = " << disc_volume << std::endl;
 
   // now for the cells
   for (cSICell* scell : scells) {
     scell->process_mesh_info(seg_out_Vec, seg_length, d_s_Vec);
   }
-
-
-
-
-/*
-
-  lumen_prop.L = L_int;  // discretisation interval
-  // min/max z coord (was read from mesh, changed to match matlab)
-//  double lumen_start = std::min(vertex_out(2), vertex_in(2));
-//  double lumen_end = std::max(vertex_out(2), vertex_in(2));
-  double lumen_start = std::numeric_limits<double>::max();
-  double lumen_end = std::numeric_limits<double>::lowest();
-  int ncells = scells.size();
-  for (int i = 0; i < ncells; i++) {
-    cSICell* cell_striated = scells[i];
-    double cellminz = cell_striated->get_min_z();
-    double cellmaxz = cell_striated->get_max_z();
-    lumen_start = std::min(cellminz, lumen_start);
-    lumen_end = std::max(cellmaxz, lumen_end);
-  }
-  double lumen_length = lumen_end - lumen_start;
-  lumen_prop.n_int = ceil(lumen_length / L_int);
-  double inner_diameter = 8.0; // TODO must come from somewhere else
-  out << ">>>>>>>>>> Remember to get inner_diameter from somewhere" << std::endl;
-  double lumen_radius = inner_diameter / 2.0;
-  lumen_prop.X_area = M_PI * pow(lumen_radius, 2);
-  lumen_prop.volume = lumen_prop.X_area * L_int;
-  out << "<Duct> lumen start, end, length: " << lumen_start << ", " << lumen_end << ", " << lumen_length << std::endl;
-  out << "       lumen radius, volume: " << lumen_radius << ", " << lumen_prop.volume << std::endl;
-  out << "       n_int: " << lumen_prop.n_int << std::endl;
-  lumen_prop.segment.resize(lumen_prop.n_int + 1);
-  out << "       segment:";
-  for (int i = 0; i <= lumen_prop.n_int; i++) {
-    lumen_prop.segment[i] = i * L_int + lumen_start;
-    out << "  " << lumen_prop.segment[i];
-  }
-  out << std::endl;
-*/
 }
 
 void cDuct::setup_IC() {
@@ -378,7 +331,7 @@ void cDuct::setup_IC() {
 void cDuct::get_parameters() {
   L_int = 1.0;  // lumen discretisation interval
 
-  PSflow = 100 / 10;  // um3/s volumetric primary saliva flow rate
+  PSflow = 100.0 / 10.0;  // um3/s volumetric primary saliva flow rate
 
   Conc.Int(Na) = 140.2;  // concentration of interstitium
   Conc.Int(K) = 5.3;
@@ -464,7 +417,6 @@ void cDuct::get_parameters() {
 
 void cDuct::step(double t, double dt)
 {
-/*	
   // Testing: call f_ODE once
   if (stepnum == 0) {
     out << "writing x and xdot for debugging" << std::endl;
@@ -497,17 +449,18 @@ void cDuct::step(double t, double dt)
   }
   // End testing
 
+/*	
   // call the solver
   gather_x(x);
   solver->run(t, t + dt, x);
   solver->PrintFinalStatsBrief();
+*/
 
   // store results
   stepnum++;
   if (stepnum % Tstride == 0) {
     save_results();
   }
-*/
 }
 
 void cDuct::setup_arrays() {
@@ -520,23 +473,28 @@ void cDuct::setup_arrays() {
   x_up.resize(Eigen::NoChange, n_l);
 }
 
+double cDuct::accum_fluid(const int duct_idx) {
+  // need to accumulate fluid flow from all those that feed into this one
+  double accum = dwAdt(duct_idx);
+  for (int i = 0; i < n_disc; i++) {
+    if (disc_out_Vec(i) == duct_idx) {
+      accum += accum_fluid(i);
+    }
+  }
+  return accum;
+}
+
 void cDuct::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
   // populate x_l and x_c from x_in
   distribute_x(x_in);
 
-
   int n_c = scells.size();
   int n_l = n_disc;
-/*
-
-  // constant parameters
-  double L = lumen_prop.L;
-  double A_L = lumen_prop.X_area;
 
   // loop through the cells to populate the rate of change for each cell/variable
   #pragma omp parallel for
   for (int i = 0; i < n_c; i++) {
-    scells[i]->f_ODE(x_l, lumen_prop);
+    scells[i]->f_ODE(x_l);
   }
 
   // setup a vector to record the rate of change of lumen fluid flow
@@ -559,35 +517,51 @@ void cDuct::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
   v_up = P.PSflow;
 
   // accumulate the fluid as secreted from cells along the lumen
-  std::partial_sum(dwAdt.begin(), dwAdt.end(), v.begin());
-  v += P.PSflow;
+  for (int i = 0; i < n_l; i++) {
+    // starting from disc i, tracing back its input disc and adding up the disc water secretion recursively
+    v(i) += accum_fluid(i);
+  }
+  out << "DEBUG: v: " << v << std::endl;
 
   // construct a matrix to represent the upstream variable value for each lumen segment
   x_up.setZero();
-  x_up.col(0) = P.ConP;
+  x_up(Eigen::all, Eigen::last) = P.ConP;
   
-  // % fill up the upstream flow rate(v_up)/variable(x_up) with downstream flow rate/variable
-  // if n_l>1 % if there are more than one lumen segment
-  //   v_up(2:n_l) = v(1:n_l-1);
-  //   x_up(:,2:n_l) = x_l(:,1:n_l-1);
-  // end
+  // % fill up the upstream water flow v_up and variables x_up
   if (n_l > 1) {
-    v_up(0, Eigen::seq(1, Eigen::last)) = v(0, Eigen::seq(0, Eigen::last - 1));
-    x_up(Eigen::all, Eigen::seq(1, Eigen::last)) = x_l(Eigen::all, Eigen::seq(0, Eigen::last - 1));
+    for (int j = 0; j < n_l; j++) {
+      // find the index of the upstream disc(s)
+      std::vector<int> disc_up;
+      for (int k = 0; k < n_disc; k++) {
+        if (disc_out_Vec(k) == j) {
+          disc_up.push_back(k);
+        }
+      }
+
+      if (disc_up.size() > 0) {  // there exists upstream discs
+        v_up(j) = v(disc_up).sum();  // summing up upstream discs in case of a joint branch
+        x_up.col(j) = x_l(Eigen::all, disc_up).rowwise().mean();  // take inflow variable as mean of upstream variable
+        // !!! might need to correct to a weighted average in future versions!!!
+      }
+      else {  // for the most upstream discs, use primary saliva and input flow rate
+        v_up(j) = P.PSflow;
+        x_up(Eigen::all, j) = P.ConP;
+      }
+    }
   }
 
   // % convert volume flow rate to linear flow speed
   // v = v./A_L; % um/s 
   // v_up = v_up./A_L; % um/s
-  v = v / A_L;
-  v_up = v_up / A_L;
+  v = v / disc_X_area.array();
+  v_up = v_up / disc_X_area;
 
   // % 1D finite difference discretisation of the lumen, backward differences scheme
   // for i = 1:6
-  //   dxldt(i,:) = dxldt(i,:) + (v_up.*x_up(i,:) - v.*x_l(i,:))./L;
+  //   dxldt(i,:) = dxldt(i,:) + (v_up.*x_up(i,:) - v.*x_l(i,:))./lumen_prop.disc_length;
   // end
   for (int i = 0; i < LUMENALCOUNT; i++) {
-    dxldt.row(i) += (v_up * x_up.row(i) - v * x_l.row(i)) / L;
+    dxldt.row(i) += (v_up * x_up.row(i) - v * x_l.row(i)) / disc_length;
   }
 
   // % flatten the matrix to a column vector
@@ -601,7 +575,7 @@ void cDuct::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
     int idx = s_l + i * LUMENALCOUNT;
     dxdt(0, Eigen::seq(idx, idx+LUMENALCOUNT-1)) = dxldt.col(i);
   }
-  
+
 #ifdef DEBUGFODE
     out << std::scientific << std::setprecision(8);
     out << "================ DEBUG =================" << std::endl;
@@ -639,5 +613,4 @@ void cDuct::save_results() {
   resultsh5.writeHyperslab(ef, id + "/electroneutrality", h5pp::Hyperslab({outputnum, 0}, {1, nc}));
 
   outputnum++;
-*/
 }
