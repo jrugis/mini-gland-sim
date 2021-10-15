@@ -66,8 +66,14 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   p = parent->p; // the parameters INIReader object
 
   // search the mesh directory for striated and intercalated cell meshes
+  std::vector<std::string> filenames;
   for (const auto &file : std::filesystem::directory_iterator(MESH_FILE_DIR)){
     std::string fpath = std::filesystem::path(file.path());
+    filenames.push_back(fpath);
+  }
+  // sorting filepaths so cells are ordered by number in the vector
+  std::sort(filenames.begin(), filenames.end());
+  for (const auto &fpath : filenames) {
     if(fpath.find("Cell_I") != std::string::npos) icells.push_back(new cSICell(this, fpath, INTERCALATED));
     if(fpath.find("Cell_S") != std::string::npos) scells.push_back(new cSICell(this, fpath, STRIATED));
   }

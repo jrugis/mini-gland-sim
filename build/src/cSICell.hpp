@@ -49,9 +49,10 @@ public:
   void step();
   void process_mesh_info(const Array1Ni &seg_out_Vec, const Array1Nd &seg_length, const Array1Ni &d_s_Vec);
   void f_ODE(const duct::ArrayNFC &xl);
-  void setup(duct::parameters_t &parent_P);
+  void setup(const duct::parameters_t &parent_P);
   const double compute_electroneutrality_check();
   const double get_mean_z() { return mean_z; }
+  const int get_cell_number() { return cell_number; }
 
 protected:
 	  
@@ -74,7 +75,7 @@ private:
   std::vector<int> loc_disc;
   Array1Nd api_area_int;
   scell::scaled_rates_t scaled_rates;
-  void setup_parameters(duct::parameters_t &parent_P);
+  void setup_parameters(const duct::parameters_t &parent_P);
   void setup_IC();
   void setup_arrays();
   double calc_dist_start_seg(const int seg_idx, const Array1Ni &seg_out_Vec, const Array1Nd &seg_length);

@@ -58,7 +58,7 @@ cSICell::~cSICell() {
   out.close();
 }
 
-void cSICell::setup(duct::parameters_t &parent_P) {
+void cSICell::setup(const duct::parameters_t &parent_P) {
   // init in separate function so parent initialiser has completed
   setup_parameters(parent_P);
   setup_IC();
@@ -102,7 +102,7 @@ void cSICell::setup_arrays() {
   A_A_disc = api_area_discs(loc_disc);
 }
 
-void cSICell::setup_parameters(duct::parameters_t &parent_P) {
+void cSICell::setup_parameters(const duct::parameters_t &parent_P) {
   // copy of parents local parameters object
   P = parent_P;
 
@@ -168,6 +168,7 @@ void cSICell::process_mesh_info(const Array1Ni &seg_out_Vec, const Array1Nd &seg
 
   // the average distance along the duct for a cell
   mean_dist = total_dist_along_duct.mean();
+  out << "<SICell> average distance along the duct for this cell = " << mean_dist << std::endl;
 
   // array for disc apical areas
   api_area_discs.resize(parent->n_disc);
@@ -178,7 +179,6 @@ void cSICell::process_mesh_info(const Array1Ni &seg_out_Vec, const Array1Nd &seg
   // This needs to be done segment by segment, in case of duct branches.
   // (triangles on two branches have similar distance but belong to diff faces)
   for (int s : duct_seg) {
-    out << "DEBUG duct_seg loop " << s << std::endl;
     // apical indices corresponding to segment s
     std::vector<int> tri_seg_idx;
     for (int i = 0; i < mesh->nfaces; i++) {
@@ -188,7 +188,6 @@ void cSICell::process_mesh_info(const Array1Ni &seg_out_Vec, const Array1Nd &seg
     }
     Array1Nd total_dist_along_duct_seg(tri_seg_idx.size());
     total_dist_along_duct_seg = total_dist_along_duct(tri_seg_idx);
-    out << "  DEBUG tri_seg_idx.size() = " << tri_seg_idx.size() << std::endl;
 
     // find all discs in segment s
     std::vector<int> all_discs_in_seg;
@@ -199,7 +198,6 @@ void cSICell::process_mesh_info(const Array1Ni &seg_out_Vec, const Array1Nd &seg
     }
     int distal_disc = *std::min_element(all_discs_in_seg.begin(), all_discs_in_seg.end());  // close to node 0 disc
     int proxim_disc = *std::max_element(all_discs_in_seg.begin(), all_discs_in_seg.end());  // far from node 0 disc
-    out << "  DEBUG distal and proxim discs: " << distal_disc << ", " << proxim_disc << std::endl;
 
     // make an array of bins for apical triangle distances, using the discs
     // consider all the discs from node 0 to segment s
@@ -211,9 +209,6 @@ void cSICell::process_mesh_info(const Array1Ni &seg_out_Vec, const Array1Nd &seg
       disc_edges(k) = disc_edges(k - 1) + parent->disc_length(k - 1);
     }
     disc_edges(proxim_disc + 1) += 1e-12;  // for the last bin, allow equal on upper edge too
-    out << "  DEBUG disc_edges (len=" << proxim_disc+1 << "):";
-    for (auto val : disc_edges) out << " " << val;
-    out << std::endl;
 
     // NOTE: using "distal_disc - 1" due to some faces belonging below distal_disc (not sure whether this should be happening)
     distal_disc = std::max(0, distal_disc - 1);
@@ -230,13 +225,13 @@ void cSICell::process_mesh_info(const Array1Ni &seg_out_Vec, const Array1Nd &seg
         }
       }
       if (not binned) {
-        out << "ERROR could not discretise " << i << " of " << tri_seg_idx.size() << ": " << total_dist_along_duct_seg(i) << std::endl;
+        out << "ERROR: could not discretise " << i << " of " << tri_seg_idx.size() << ": " << total_dist_along_duct_seg(i) << std::endl;
+        out << "       disc_edges (len=" << proxim_disc+1 << "):";
+        for (auto val : disc_edges) out << " " << val;
+        out << std::endl;
         utils::fatal_error("failed to discretise discs", out);
       }
     }
-    out << "  DEBUG api_disc_conn:";
-    for (auto val : api_disc_conn) out << " " << val;
-    out << std::endl;
 
     for (std::vector<int>::size_type i = 0; i < tri_seg_idx.size(); i++) {
       // disc index for this apical triangle
@@ -245,7 +240,7 @@ void cSICell::process_mesh_info(const Array1Ni &seg_out_Vec, const Array1Nd &seg
       api_area_discs(disc_idx) += mesh->face_areas(face_idx);
     }
   }
-  out << "  DEBUG api_area_discs:";
+  out << "<SICell> api_area_discs:";
   for (auto v : api_area_discs) out << " " << v;
   out << std::endl;
 
@@ -255,7 +250,7 @@ void cSICell::process_mesh_info(const Array1Ni &seg_out_Vec, const Array1Nd &seg
       loc_disc.push_back(i);
     }
   }
-  out << "  DEBUG loc_disc:";
+  out << "<SICell> loc_disc:";
   for (auto v : loc_disc) out << " " << v;
   out << std::endl;
 
@@ -398,9 +393,9 @@ void cSICell::f_ODE(const duct::ArrayNFC &x_l) {
   // osm_c = chi_C./w_C*1e18; % osmolarity of cell due to proteins (chi)
   //
   // J_B = 1e-18*L_B.*V_w.*(Na_C + K_C + Cl_C + HCO_C + osm_c - Na_B - K_B - Cl_B - HCO_B - phi_B); % um/s 
-  // J_A = 1e-18*L_A.*V_w.*(Na_A + K_A + Cl_A + HCO_A + phi_A - Na_C - K_C - Cl_C - HCO_C - osm_c); % um/s [1, n_loc_int]
-  // dwdt = A_B * J_B - sum(A_A_int .* J_A); % um^3/s
-  // dwAdt(1,loc_int) = dwAdt(1,loc_int) + A_A_int .* J_A; % um^3/s [1, n_loc_int]
+  // J_A = 1e-18*L_A.*V_w.*(Na_A + K_A + Cl_A + HCO_A + phi_A - Na_C - K_C - Cl_C - HCO_C - osm_c); % um/s [1, n_loc_disc]
+  // dwdt = A_B * J_B - sum(A_A_disc .* J_A); % um^3/s
+  // dwAdt(1,loc_disc) = dwAdt(1,loc_disc) + A_A_disc .* J_A; % um^3/s [1, n_loc_disc]
   double osm_c = P.chi_C / w_C * 1e18;
   double J_B = 1e-18*L_B*V_w*(Na_C + K_C + Cl_C + HCO_C + osm_c - Na_B - K_B - Cl_B - HCO_B - phi_B);
   J_A = 1e-18*L_A*V_w*(Na_A + K_A + Cl_A + HCO_A + phi_A - Na_C - K_C - Cl_C - HCO_C - osm_c);
