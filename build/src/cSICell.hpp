@@ -51,7 +51,7 @@ public:
   void f_ODE(const duct::ArrayNFC &xl);
   void setup(const duct::parameters_t &parent_P);
   const double compute_electroneutrality_check();
-  const double get_mean_z() { return mean_z; }
+  const double get_mean_dist() { return mean_dist; }
   const int get_cell_number() { return cell_number; }
 
 protected:
@@ -70,7 +70,6 @@ private:
   double mean_dist;             // the average distance along the duct for the cell
   MatrixN1d api_area_discs;     // total apical triangle area corresponding to each disc
   int napical;                  // number of apical triangles
-  double mean_z;                // mean z coordinate of the faces
   std::vector<int> api_lumen_conn;
   std::vector<int> loc_disc;
   Array1Nd api_area_int;

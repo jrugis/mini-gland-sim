@@ -100,14 +100,6 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   // setup arrays for ODE calculation
   setup_arrays();
 
-  // setup the cells too
-  int nscells = scells.size();
-  Eigen::VectorXf cellz(nscells);
-  for (int i = 0; i < nscells; i++) {
-    // store centroid z coordinate for postprocessing
-    cellz(i) = static_cast<float>(scells[i]->get_mean_z());
-  }
-
   // allocate solver vectors
   int num_var = get_nvars();
   x.resize(1, num_var);
@@ -142,6 +134,7 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
 #endif
 
   // create dataset for electroneutrality
+  int nscells = scells.size();
   Eigen::VectorXf ef(nscells);
   resultsh5.createDataset(ef, id + "/electroneutrality", {num_steps, nscells});
 
@@ -153,15 +146,21 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   double outputdt = delT * Tstride;
   resultsh5.writeAttribute(outputdt, "output time interval", "/");
 
-  // store cell centroid z components for postprocessing
-  resultsh5.writeDataset(cellz, id + "/zcells");
+  // store cell mean distance along duct for postprocessing
+  Array1Nd CellPos(nscells);
+  for (int i = 0; i < nscells; i++) {
+    CellPos(i) = static_cast<float>(scells[i]->get_mean_dist());
+  }
+  CellPos = disc_length.sum() - CellPos;
+  Eigen::VectorXf CellPosf = CellPos.cast<float>();
+  resultsh5.writeDataset(CellPosf, id + "/CellPos");
 
-  // store lumen segments
-//  Eigen::VectorXf segf(n_disc + 1);
-//  for (int i = 0; i < lumen_prop.n_int + 1; i++) {
-//    segf(i) = static_cast<float>(lumen_prop.segment[i]);
-//  }
-//  resultsh5.writeDataset(segf, id + "/segment");
+  // store disc position along duct for postprocessing
+  Array1Nd IntPos(n_disc);
+  std::partial_sum(disc_length.begin(), disc_length.end(), IntPos.begin());
+  IntPos = disc_length.sum() - IntPos;
+  Eigen::VectorXf IntPosf = IntPos.cast<float>();
+  resultsh5.writeDataset(IntPosf, id + "/IntPos");
 
   // store t=0
   save_results();

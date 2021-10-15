@@ -34,7 +34,6 @@ cSICell::cSICell(cDuct* _parent, std::string fname, cell_groups _cell_group) : p
   api_area = 0.0;
   baslat_area = 0.0;
   napical = 0;
-  mean_z = 0.0;
   for (int i = 0; i < mesh->nfaces; i++) {
     if (mesh->face_types(i) == APICAL) {
       api_area += mesh->face_areas(i);
@@ -42,15 +41,10 @@ cSICell::cSICell(cDuct* _parent, std::string fname, cell_groups _cell_group) : p
     else {  // basal or basolateral
       baslat_area += mesh->face_areas(i);
     }
-    for (int j = 0; j < 3; j++) {
-      mean_z += mesh->verts.row(mesh->faces(i, j))(2);
-    }
   }
-  mean_z = mean_z / static_cast<double>(mesh->nfaces * 3);
   out << "<SICell> num apical triangles = " << napical << std::endl;
   out << "<SICell> api_area = " << api_area << std::endl;
   out << "<SICell> baslat_area = " << baslat_area << std::endl;
-  out << "<SICell> mean_z = " << mean_z << std::endl;
 }
 
 cSICell::~cSICell() {
