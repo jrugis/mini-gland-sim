@@ -455,12 +455,10 @@ void cDuct::step(double t, double dt)
   }
   // End testing
 
-/*	
   // call the solver
   gather_x(x);
   solver->run(t, t + dt, x);
   solver->PrintFinalStatsBrief();
-*/
 
   // store results
   stepnum++;
@@ -527,7 +525,7 @@ void cDuct::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
     // starting from disc i, tracing back its input disc and adding up the disc water secretion recursively
     v(i) += accum_fluid(i);
   }
-  out << "DEBUG: v: " << v << std::endl;
+//  out << "DEBUG: v: " << v << std::endl;
 
   // construct a matrix to represent the upstream variable value for each lumen segment
   x_up.setZero();
