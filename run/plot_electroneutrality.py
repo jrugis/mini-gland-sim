@@ -10,16 +10,16 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
-results = h5py.File('g1d1_results.h5', 'r')
+results = h5py.File('_duct_results.h5', 'r')
 print(results)
 
 # attributes for x array
-for key in results['g1d1'].attrs.keys():
-    print(f"{key}: {results['g1d1'].attrs[key]}")
-n_c = results['g1d1'].attrs['number of cells']
+for key in results['_duct'].attrs.keys():
+    print(f"{key}: {results['_duct'].attrs[key]}")
+n_c = results['_duct'].attrs['number of cells']
 
 # electroneutrality
-electro = np.asarray(results['g1d1/electroneutrality'])
+electro = np.asarray(results['_duct/electroneutrality'])
 print(electro.shape)
 assert n_c == electro.shape[1]
 

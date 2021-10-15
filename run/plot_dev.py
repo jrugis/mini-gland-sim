@@ -10,32 +10,31 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 
 
-results = h5py.File('g1d1_results.h5', 'r')
+results = h5py.File('_duct_results.h5', 'r')
 print(results)
 
-x = np.asarray(results['g1d1/x'])
+x = np.asarray(results['_duct/x'])
 print("x shape", x.shape)
 
 # cell position
-cellpos = np.asarray(results['g1d1/zcells'])
-print("cellpos shape", cellpos.shape)
+cellpos = np.asarray(results['_duct/CellPos'])
+print("CellPos shape", cellpos.shape)
 
 # sorting cell positions
 sortedidx = np.argsort(cellpos)
 cellpos = np.sort(cellpos)
 
 # lumen segment positions
-segment = np.asarray(results['g1d1/segment'])
-intpos = segment[:-1]
-print("segment shape", intpos.shape)
+intpos = np.asarray(results['_duct/IntPos'])
+print("IntPos shape", intpos.shape)
 
 # attributes for x array
-for key in results['g1d1'].attrs.keys():
-    print(f"{key}: {results['g1d1'].attrs[key]}")
-v_c = results['g1d1'].attrs['number of cellular variables']
-v_l = results['g1d1'].attrs['number of lumenal variables']
-n_c = results['g1d1'].attrs['number of cells']
-n_l = results['g1d1'].attrs['number of lumen segments']
+for key in results['_duct'].attrs.keys():
+    print(f"{key}: {results['_duct'].attrs[key]}")
+v_c = results['_duct'].attrs['number of cellular variables']
+v_l = results['_duct'].attrs['number of lumenal variables']
+n_c = results['_duct'].attrs['number of cells']
+n_l = results['_duct'].attrs['number of lumen discs']
 
 # time values
 dt = results.attrs["output time interval"]
