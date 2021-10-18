@@ -28,6 +28,9 @@
 #include "cCVode.hpp"
 #include "cDuct.hpp"
 
+//#define DEBUGFODE
+//#define DEBUGFODELOADX
+
 using namespace duct;
 
 // the function that will be called by the SUNDIALS solver
@@ -431,9 +434,12 @@ void cDuct::step(double t, double dt)
 
 #ifdef DEBUGFODELOADX
     // load x from HDF5 file for debugging
+    out << "loading x from testx.h5" << std::endl;
     h5pp::File hxfile("testx.h5", h5pp::FilePermission::READONLY);
-    Eigen::VectorXf testxf = hxfile.readDataset<Eigen::VectorXf>("x");
-    testx = testxf.cast<double>();
+//    Eigen::VectorXf testxf = hxfile.readDataset<Eigen::VectorXf>("x");
+//    testx = testxf.cast<double>();
+    Eigen::VectorXd testxd = hxfile.readDataset<Eigen::VectorXd>("x");
+    testx = testxd;
     distribute_x(testx);
     gather_x(testx);
 #endif
@@ -524,7 +530,7 @@ void cDuct::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
     // starting from disc i, tracing back its input disc and adding up the disc water secretion recursively
     v(i) += accum_fluid(i);
   }
-//  out << "DEBUG: v: " << v << std::endl;
+//  out << "---- DEBUG: v 1: " << v << std::endl;
 
   // construct a matrix to represent the upstream variable value for each lumen segment
   x_up.setZero();
@@ -552,12 +558,16 @@ void cDuct::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
       }
     }
   }
+//  out << "DEBUG ------ DEBUG v_up 1: " << v_up << std::endl;
+//  out << "DEBUG ------ DEBUG x_up: " << x_up << std::endl;
 
   // % convert volume flow rate to linear flow speed
   // v = v./A_L; % um/s 
   // v_up = v_up./A_L; % um/s
   v = v / disc_X_area.array();
   v_up = v_up / disc_X_area;
+//  out << "DEBUG -------- DEBUG v 2: " << v << std::endl;
+//  out << "DEBUG -------- DEBUG v_up 2: " << v_up << std::endl;
 
   // % 1D finite difference discretisation of the lumen, backward differences scheme
   // for i = 1:6
@@ -579,14 +589,14 @@ void cDuct::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
     dxdt(0, Eigen::seq(idx, idx+LUMENALCOUNT-1)) = dxldt.col(i);
   }
 
-#ifdef DEBUGFODE
-    out << std::scientific << std::setprecision(8);
-    out << "================ DEBUG =================" << std::endl;
-    out << "initial P.S. flow rate: %2.2f  um3 " << (v_up(0)*A_L) << std::endl;
-    out << "final P.S. flow rate:   %2.2f  um3 " << (v(Eigen::last)*A_L) << std::endl;
-    out << "percentage:             %2.2f  " << (v(Eigen::last)-v_up(0))/v_up(0)*100 << std::endl;
-    out << "================ END DEBUG =================" << std::endl;
-#endif
+//#ifdef DEBUGFODE
+//    out << std::scientific << std::setprecision(8);
+//    out << "================ DEBUG =================" << std::endl;
+//    out << "initial P.S. flow rate: %2.2f  um3 " << (v_up(0)*A_L) << std::endl;
+//    out << "final P.S. flow rate:   %2.2f  um3 " << (v(Eigen::last)*A_L) << std::endl;
+//    out << "percentage:             %2.2f  " << (v(Eigen::last)-v_up(0))/v_up(0)*100 << std::endl;
+//    out << "================ END DEBUG =================" << std::endl;
+//#endif
 }
 
 void cDuct::save_results() {

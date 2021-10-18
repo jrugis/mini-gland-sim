@@ -23,6 +23,9 @@ print("CellPos shape", cellpos.shape)
 # sorting cell positions
 sortedidx = np.argsort(cellpos)
 cellpos = np.sort(cellpos)
+sortedidx = np.flip(sortedidx)
+cellpos = np.flip(cellpos)
+print(cellpos)
 
 # lumen segment positions
 intpos = np.asarray(results['_duct/IntPos'])
