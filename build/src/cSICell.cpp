@@ -21,6 +21,8 @@
 #include "cSIMesh.hpp"
 #include "cSICell.hpp"
 
+//#define DEBUGFODE
+
 cSICell::cSICell(cDuct* _parent, std::string fname, cell_groups _cell_group) : parent(_parent), cell_group(_cell_group)
 {
   id = "cell_" + fname.substr(fname.find("Cell")+5,4); // NOTE: one based cell id
@@ -37,6 +39,7 @@ cSICell::cSICell(cDuct* _parent, std::string fname, cell_groups _cell_group) : p
   for (int i = 0; i < mesh->nfaces; i++) {
     if (mesh->face_types(i) == APICAL) {
       api_area += mesh->face_areas(i);
+      napical++;
     }
     else {  // basal or basolateral
       baslat_area += mesh->face_areas(i);
@@ -345,6 +348,7 @@ void cSICell::f_ODE(const duct::ArrayNFC &x_l) {
   double k_buf_m = P.buf.k_m; // /mMs
   // setup the ODE rate of change matrix
   dxcdt.setZero();
+  dwAdt.setZero();
 
   // cell specific parameters
   double G_ENaC = scaled_rates.G_ENaC;
@@ -526,6 +530,11 @@ void cSICell::f_ODE(const duct::ArrayNFC &x_l) {
   dxldt(5,loc_disc) = J_CDF_A/w_A - J_buf_A;
 
 #ifdef DEBUGFODE
+  out << "dxcdt = " << dxcdt << std::endl;
+  for (int i = 0; i < 6; i++) {
+    out << "dxldt " << i << " = " << dxldt.row(i) << std::endl;
+  }
+
   out << std::scientific << std::setprecision(8);
   out << "================ DEBUG =================" << std::endl;
   out << "I_ENaC:       %.8d nA  " << I_ENaC*1e-6 << std::endl;
@@ -537,7 +546,8 @@ void cSICell::f_ODE(const duct::ArrayNFC &x_l) {
   out << "I_CFTR_B:     %.8d nA  " << I_CFTR_B*1e-6 << std::endl;
   out << "J_AE2_A:      %.8d nA  " << J_AE2_A*F_const*1e-9 << std::endl;
   out << "J_AE2_B:      %.8d nA  " << J_AE2_B*F_const*1e-9 << std::endl;
-  out << "J_NBC:        %.8d nA  " << J_NBC*F_const*1e-9 << std::endl;
+  out << "J_NBC_A:      %.8d nA  " << J_NBC_A*F_const*1e-9 << std::endl;
+  out << "J_NBC_B:      %.8d nA  " << J_NBC_B*F_const*1e-9 << std::endl;
   out << "J_NHE_A:      %.8d nA  " << J_NHE_A*F_const*1e-9 << std::endl;
   out << "J_NHE_B:      %.8d nA  " << J_NHE_B*F_const*1e-9 << std::endl;
   out << "J_CDF_A:      %.8d nA  " << J_CDF_A*F_const*1e-9 << std::endl;

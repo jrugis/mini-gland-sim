@@ -30,6 +30,7 @@
 
 //#define DEBUGFODE
 //#define DEBUGFODELOADX
+//#define DEBUGWRITEXDOT
 
 using namespace duct;
 
@@ -174,7 +175,7 @@ cDuct::~cDuct()
   for (unsigned int i = 0; i < icells.size(); i++) delete icells[i]; // delete the intercalated cells
   for (unsigned int i = 0; i < scells.size(); i++) delete scells[i]; // delete the striated cells
   out.close();
-  //delete solver;
+  delete solver;
 }
 
 void cDuct::distribute_x(const Array1Nd &x_in) {
@@ -490,6 +491,7 @@ double cDuct::accum_fluid(const int duct_idx) {
       accum += accum_fluid(i);
     }
   }
+  // TODO: store calculated values and look up instead of calculating again
   return accum;
 }
 
