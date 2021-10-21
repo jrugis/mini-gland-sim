@@ -2,6 +2,7 @@
 # coding: utf-8
 
 import os
+import sys
 
 import h5py
 import numpy as np
@@ -29,7 +30,11 @@ print("output time interval: %f s" % dt)
 timevals = np.arange(0.0, electro.shape[0]*dt-0.5*dt, dt)
 assert timevals.shape[0] == electro.shape[0]
 
-cell = np.random.choice(n_c)
+if len(sys.argv) > 1:
+    cell = int(sys.argv[1]) - 1
+    assert cell >= 0 and cell < n_c, f"Bad input for cell number (1 <= cell <= {n_c})"
+else:
+    cell = np.random.choice(n_c)
 print("plotting electroneutrality for cell %d" % (cell+1,))
 
 plt.plot(timevals, electro[:, cell])
@@ -37,5 +42,5 @@ plt.title("Electroneutrality check for cell {0}".format(cell+1))
 plt.xlabel("Time (s)")
 plt.ylabel("Electroneutrality (mol)")
 
-print("writing electroneutrality.pdf", )
-plt.savefig("electroneutrality.pdf")
+print(f"writing electroneutrality_cell{cell+1}.pdf")
+plt.savefig(f"electroneutrality_cell{cell+1}.pdf")
