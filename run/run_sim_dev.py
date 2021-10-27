@@ -61,8 +61,8 @@ os.system("cp " + run_dir + "/plot_*.py .")
 os.system("cp " + run_dir + "/" + slurm + " run.sl")
 
 # run the executable
-os.system("./mini-gland-sim")
-#os.system("sbatch run.sl")
+#os.system("./mini-gland-sim")
+os.system("sbatch run.sl")
 
 # go back to top level
 os.chdir(run_dir)
