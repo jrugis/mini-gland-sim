@@ -132,7 +132,7 @@ public:
   ~cDuct();
   void step(double t, double dt);
   int get_nvars();
-  void f_ODE(const Array1Nd &x_in, Array1Nd &dxdt);
+  void f_ODE(const double t, const Array1Nd &x_in, Array1Nd &dxdt);
 
 protected:
   std::string id;

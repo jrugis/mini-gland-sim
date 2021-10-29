@@ -48,8 +48,9 @@ public:
   Array1Nd dwAdt;
   void step();
   void process_mesh_info(const Array1Ni &seg_out_Vec, const Array1Nd &seg_length, const Array1Ni &d_s_Vec);
-  void f_ODE(const duct::ArrayNFC &xl);
-  void setup(const duct::parameters_t &parent_P);
+  void f_ODE(const double t, const duct::ArrayNFC &xl);
+  void setup_parameters(const duct::parameters_t &parent_P);
+  void setup_IC();
   const double compute_electroneutrality_check();
   const double get_mean_dist() { return mean_dist; }
   const int get_cell_number() { return cell_number; }
@@ -74,8 +75,6 @@ private:
   std::vector<int> loc_disc;
   Array1Nd api_area_int;
   scell::scaled_rates_t scaled_rates;
-  void setup_parameters(const duct::parameters_t &parent_P);
-  void setup_IC();
   void setup_arrays();
   double calc_dist_start_seg(const int seg_idx, const Array1Ni &seg_out_Vec, const Array1Nd &seg_length);
   Array1Nd Na_A, K_A, Cl_A, HCO_A, H_A, CO_A;  // intermediate calculation arrays as members for performance

@@ -52,7 +52,7 @@ static int ode_func(realtype t, N_Vector y, N_Vector ydot, void* user_data)
   }
 
   // call secretion function
-  pt_duct->f_ODE(ymat, ydotmat);
+  pt_duct->f_ODE(t, ymat, ydotmat);
 
   // copy result back into sundials data structure
   #pragma omp parallel for
@@ -89,11 +89,6 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   // create parameters structure
   p = parent->p;  // pointer to ini reader object on parent
   get_parameters();
-
-  // setup cells
-  for (cSICell* scell : scells) {
-    scell->setup(P);
-  }
 
   // mesh stuff (each cell has its own mesh data, lumen segments here)
   process_mesh_info();
@@ -323,17 +318,44 @@ void cDuct::process_mesh_info() {
 }
 
 void cDuct::setup_IC() {
-   x_l.resize(Eigen::NoChange, n_disc);
-   dxldt.resize(Eigen::NoChange, n_disc);
+  // resizing arrays
+  x_l.resize(Eigen::NoChange, n_disc);
+  dxldt.resize(Eigen::NoChange, n_disc);
 
-  for (int i = 0; i < n_disc; i++) {  // looping over lumen segments
-    // lumenal initial concentration
-    x_l(Na, i) = 143.5;  // TODO: move these to parameter file
-    x_l(K, i) = 5.2;
-    x_l(Cl, i) = 114.5;
-    x_l(HCO, i) = 34.2;
-    x_l(H, i) = 1000 * pow(10, -7.35);
-    x_l(CO, i) = 1.28;
+  // parameter determines whether we load ICs from file or use defaults
+  bool load_from_file = false;
+  if (p->HasSection("init")) {
+    if (p->HasValue("init", "init_file")) {
+      load_from_file = true;
+    }
+  }
+
+  if (load_from_file) {  // load initial conditions from file
+    std::string init_file = p->Get("init", "init_file", "");
+
+    // open the HDF5 file and load the dataset
+    h5pp::File hxfile(init_file, h5pp::FilePermission::READONLY);
+    // TODO: check attributes, confirm dimensions match
+    Eigen::VectorXf xf = hxfile.readDataset<Eigen::VectorXf>("/x");
+    x = xf.cast<double>();
+    // this sets the x_c on each cell and x_l here
+    distribute_x(x);
+  }
+  else {  // default initial conditions
+    for (int i = 0; i < n_disc; i++) {  // looping over lumen segments
+      // lumenal initial concentration
+      x_l(Na, i) = 143.5;  // TODO: move these to parameter file
+      x_l(K, i) = 5.2;
+      x_l(Cl, i) = 114.5;
+      x_l(HCO, i) = 34.2;
+      x_l(H, i) = 1000 * pow(10, -7.35);
+      x_l(CO, i) = 1.28;
+    }
+
+    // setup x_c on each cell with default values
+    for (cSICell* scell : scells) {
+      scell->setup_IC();
+    }
   }
 }
 
@@ -422,6 +444,11 @@ void cDuct::get_parameters() {
   P.chi_C = utils::get_parameter_real(p, "duct_common", "chi_C", out);
   P.phi_A = utils::get_parameter_real(p, "duct_common", "phi_A", out);
   P.phi_B = utils::get_parameter_real(p, "duct_common", "phi_B", out);
+
+  // set the parameters on the cells too
+  for (cSICell* scell : scells) {
+    scell->setup_parameters(P);
+  }
 }
 
 void cDuct::step(double t, double dt)
@@ -445,7 +472,7 @@ void cDuct::step(double t, double dt)
     gather_x(testx);
 #endif
 
-    f_ODE(testx, testxdot);
+    f_ODE(0, testx, testxdot);
     std::ofstream xfile("xdump.txt");
     xfile << std::fixed << std::setprecision(15);
     xfile << testx.transpose();
@@ -495,7 +522,7 @@ double cDuct::accum_fluid(const int duct_idx) {
   return accum;
 }
 
-void cDuct::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
+void cDuct::f_ODE(const double t, const Array1Nd &x_in, Array1Nd &dxdt) {
   // populate x_l and x_c from x_in
   distribute_x(x_in);
 
@@ -505,7 +532,7 @@ void cDuct::f_ODE(const Array1Nd &x_in, Array1Nd &dxdt) {
   // loop through the cells to populate the rate of change for each cell/variable
   #pragma omp parallel for
   for (int i = 0; i < n_c; i++) {
-    scells[i]->f_ODE(x_l);
+    scells[i]->f_ODE(t, x_l);
   }
 
   // setup a vector to record the rate of change of lumen fluid flow

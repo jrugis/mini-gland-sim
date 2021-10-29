@@ -55,12 +55,6 @@ cSICell::~cSICell() {
   out.close();
 }
 
-void cSICell::setup(const duct::parameters_t &parent_P) {
-  // init in separate function so parent initialiser has completed
-  setup_parameters(parent_P);
-  setup_IC();
-}
-
 void cSICell::setup_arrays() {
   // setting up arrays once at the beginning for performance
   int n_loc_disc = loc_disc.size();
@@ -307,7 +301,7 @@ void cSICell::setup_IC(){
   x_c(8) = 1.28;
 }
 
-void cSICell::f_ODE(const duct::ArrayNFC &x_l) {
+void cSICell::f_ODE(const double t, const duct::ArrayNFC &x_l) {
   // constant parameters
   double Na_B = P.ConI(duct::Na);
   double K_B = P.ConI(duct::K);
