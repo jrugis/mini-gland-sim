@@ -160,6 +160,13 @@ private:
   Array1Nd dwAdt, v, v_up;
   duct::ArrayNFC x_up;
   cCVode *solver;
+  bool dynamic_flow;  // dynamic flow input vs static
+  Eigen::VectorXd dynamic_flow_t;
+  Eigen::VectorXd dynamic_flow_Cl;
+  Eigen::VectorXd dynamic_flow_K;
+  Eigen::VectorXd dynamic_flow_Na;
+  Eigen::VectorXd dynamic_flow_Q;
+  double dynamic_flow_tstart, dynamic_flow_tend;
   int stepnum, outputnum, Tstride;
   std::string resultsh5_dataset, resultsh5_filename;
   void get_parameters();
@@ -170,6 +177,7 @@ private:
   void save_results();
   void setup_arrays();
   double accum_fluid(const int duct_idx);
+  void setup_dynamic_flow();
 };
 
 #endif /* CDUCT_H_ */

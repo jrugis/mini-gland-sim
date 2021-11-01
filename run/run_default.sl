@@ -26,3 +26,4 @@ echo "Num threads: ${OMP_NUM_THREADS}"
 # plot some results
 python plot_dev.py
 python plot_electroneutrality.py
+python plot_cell_variable_time.py

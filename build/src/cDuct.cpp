@@ -99,6 +99,9 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   // setup arrays for ODE calculation
   setup_arrays();
 
+  // setup dynamic flow input
+  setup_dynamic_flow();
+
   // allocate solver vectors
   int num_var = get_nvars();
   x.resize(1, num_var);
@@ -317,6 +320,29 @@ void cDuct::process_mesh_info() {
   }
 }
 
+void cDuct::setup_dynamic_flow() {
+  // parameter determines whether we use dynamic flow input
+  dynamic_flow = false;
+  if (p->HasSection("dynamic_flow")) {
+    if (p->HasValue("dynamic_flow", "flow_file")) {
+      dynamic_flow = true;
+      std::string flow_file = p->Get("dynamic_flow", "flow_file", "");
+
+      // load flow tables from HDF5 file
+      h5pp::File ff(flow_file, h5pp::FilePermission::READONLY);
+      dynamic_flow_t = ff.readDataset<Eigen::VectorXd>("/t");
+      dynamic_flow_Cl = ff.readDataset<Eigen::VectorXd>("/Cl");
+      dynamic_flow_K = ff.readDataset<Eigen::VectorXd>("/K");
+      dynamic_flow_Na = ff.readDataset<Eigen::VectorXd>("/Na");
+      dynamic_flow_Q = ff.readDataset<Eigen::VectorXd>("/Q");
+      dynamic_flow_tstart = dynamic_flow_t(0);
+      dynamic_flow_tend = dynamic_flow_t(Eigen::last);
+
+      out << "<Duct> using dynamic flow input from " << dynamic_flow_tstart << " to " << dynamic_flow_tend << " s" << std::endl;
+    }
+  }
+}
+
 void cDuct::setup_IC() {
   // resizing arrays
   x_l.resize(Eigen::NoChange, n_disc);
@@ -332,6 +358,7 @@ void cDuct::setup_IC() {
 
   if (load_from_file) {  // load initial conditions from file
     std::string init_file = p->Get("init", "init_file", "");
+    out << "<Duct> loading initial conditions from: " << init_file << std::endl;
 
     // open the HDF5 file and load the dataset
     h5pp::File hxfile(init_file, h5pp::FilePermission::READONLY);

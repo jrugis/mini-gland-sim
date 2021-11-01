@@ -22,7 +22,7 @@ run_dir = os.getcwd()
 
 if(len(sys.argv) < 4):
   print("error: missing argument(s)")
-  print("usage: python run_sim.py <mesh-zip-file> <parameter-file> <slurm-script>")
+  print("usage: python run_sim.py <mesh-zip-file> <parameter-file> <slurm-script> [additional-file-1 [additional-file-2 [...]]]")
   quit()
 
 mesh_zip_file = sys.argv[1] # mesh file
@@ -39,6 +39,15 @@ slurm = sys.argv[3] # Slurm script
 if not os.path.exists(run_dir + "/" + slurm):
   print("no such Slurm script: " + slurm)
   quit()
+
+additional_files = []
+if len(sys.argv) > 4:
+    for i in range(4, len(sys.argv)):
+        if os.path.exists(sys.argv[i]):
+            additional_files.append(sys.argv[i])
+        else:
+            print("no such additional file: " + sys.argv[i])
+            quit()
 
 # create the top level results directory
 run_dir = re.sub("^/scale_wlg_persistent/filesets", "/nesi", run_dir)
@@ -59,6 +68,8 @@ os.system("unzip -q " + run_dir + "/" + mesh_zip_file + " -d ./meshes")
 os.system("cp " + run_dir + "/" + parms + " p.ini")
 os.system("cp " + run_dir + "/plot_*.py .")
 os.system("cp " + run_dir + "/" + slurm + " run.sl")
+for additional_file in additional_files:
+    os.system("cp " + run_dir + "/" + additional_file + " .")
 
 # run the executable
 #os.system("./mini-gland-sim")
