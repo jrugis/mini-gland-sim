@@ -15,7 +15,6 @@
 #include <optional>
 #include <string>
 #include <vector>
-#include <tuple>
 
 #include <nvector/nvector_serial.h>    /* access to serial N_Vector            */
 #include <sundials/sundials_types.h>   /* defs. of realtype, sunindextype      */
@@ -525,6 +524,7 @@ void cDuct::setup_arrays() {
   int n_l = n_disc;
 
   dwAdt.resize(Eigen::NoChange, n_l);
+  v_secreted.resize(Eigen::NoChange, n_l);
   v.resize(Eigen::NoChange, n_l);
   v_up.resize(Eigen::NoChange, n_l);
   x_up.resize(Eigen::NoChange, n_l);
@@ -569,64 +569,46 @@ void cDuct::f_ODE(const double t, const Array1Nd &x_in, Array1Nd &dxdt) {
   }
 
   // primary saliva volume flow rate
-  double Na_P, K_P, Cl_P, pv;
+  double pv = P.PSflow;  // start with constant flow rate
+  x_P = P.ConP;
   if (dynamic_flow_flag && (t < dynamic_flow.get_tend())) {  // primary saliva volume flow rate dependent on time
-    // interpolating values
+    // interpolating dynamic flow rate input
     auto interp_vals = dynamic_flow.get_interp_vals(t);
-    Na_P = dynamic_flow.get_Na(interp_vals);
-    K_P = dynamic_flow.get_K(interp_vals);
-    Cl_P = dynamic_flow.get_Cl(interp_vals);
+    x_P(Na) = dynamic_flow.get_Na(interp_vals);
+    x_P(K) = dynamic_flow.get_K(interp_vals);
+    x_P(Cl) = dynamic_flow.get_Cl(interp_vals);
     pv = dynamic_flow.get_Q(interp_vals);
   }
-  else {  // otherwise, constant
-    Na_P = P.ConP(Na);
-    K_P = P.ConP(K);
-    Cl_P = P.ConP(Cl);
-    pv = P.PSflow;
-  }
-  double HCO_P = P.ConP(HCO);
-  double H_P = P.ConP(H);
-  double CO_P = P.ConP(CO);
 
-  // % compute the fluid flow rate in the lumen
-  // v = ones(1,n_l) * P.PSflow; % um^3/s volume flow rate of fluid out of each lumen segment
-  // v_up = ones(1,n_l) * P.PSflow; % um^3/s volume flow rate of fluid into each lumen segment
-  v = P.PSflow;
-  v_up = P.PSflow;
-
-  // accumulate the fluid as secreted from cells along the lumen
-  for (int i = 0; i < n_l; i++) {
-    // starting from disc i, tracing back its input disc and adding up the disc water secretion recursively
-    v(i) += accum_fluid(i);
-  }
-//  out << "---- DEBUG: v 1: " << v << std::endl;
-
-  // construct a matrix to represent the upstream variable value for each lumen segment
+  // compute the fluid flow rate in the lumen
+  v_secreted.setZero();
+  v_up.setZero();
+  v.setZero();
   x_up.setZero();
-  x_up(Eigen::all, Eigen::last) = P.ConP;
-  
-  // % fill up the upstream water flow v_up and variables x_up
-  if (n_l > 1) {
-    for (int j = 0; j < n_l; j++) {
-      // find the index of the upstream disc(s)
-      std::vector<int> disc_up;
-      for (int k = 0; k < n_disc; k++) {
-        if (disc_out_Vec(k) == j) {
-          disc_up.push_back(k);
-        }
-      }
-
-      if (disc_up.size() > 0) {  // there exists upstream discs
-        v_up(j) = v(disc_up).sum();  // summing up upstream discs in case of a joint branch
-        x_up.col(j) = x_l(Eigen::all, disc_up).rowwise().mean();  // take inflow variable as mean of upstream variable
-        // !!! might need to correct to a weighted average in future versions!!!
-      }
-      else {  // for the most upstream discs, use primary saliva and input flow rate
-        v_up(j) = P.PSflow;
-        x_up(Eigen::all, j) = P.ConP;
+  for (int i = n_l - 1; i >= 0; i--) {
+    // find upstream disc(s) of disc i
+    std::vector<int> i_up;
+    for (int j = 0; j < n_disc; j++) {
+      if (disc_out_Vec(j) == i) {
+        i_up.push_back(j);
       }
     }
+
+    // if no upstream disc, it is an acinus end disc, v_up = PSflow
+    if (i_up.size() == 0) {
+      v_up(i) = pv;
+      v_secreted(i) = 0.0;
+      x_up(Eigen::all, i) = x_P;
+    }
+    else {  // i_up could be a vector due to i being a branching disc
+      v_up(i) = v_up(i_up).sum();
+      v_secreted(i) = (v_secreted(i_up) + dwAdt(i_up)).sum();
+      x_up(Eigen::all, i) = (x_l(Eigen::all, i_up) * v_up(i_up).replicate(FIELDCOUNT, 1) / v_up(i_up).sum()).rowwise().sum();
+    }
   }
+  v_up += v_secreted;
+  v = v_up + dwAdt;
+
 //  out << "DEBUG ------ DEBUG v_up 1: " << v_up << std::endl;
 //  out << "DEBUG ------ DEBUG x_up: " << x_up << std::endl;
 

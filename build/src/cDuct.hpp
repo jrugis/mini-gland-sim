@@ -159,6 +159,7 @@ private:
   duct::ArrayNFC x_l, dxldt;  // solution vector and derivative
   Array1Nd x, dxdt;
   Array1Nd dwAdt, v, v_up, v_secreted;
+  duct::Array1FC x_P;
   duct::ArrayNFC x_up;
   cCVode *solver;
   bool dynamic_flow_flag;  // dynamic flow input vs static
