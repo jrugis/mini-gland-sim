@@ -15,6 +15,7 @@
 #include <optional>
 #include <string>
 #include <vector>
+#include <tuple>
 
 #include <nvector/nvector_serial.h>    /* access to serial N_Vector            */
 #include <sundials/sundials_types.h>   /* defs. of realtype, sunindextype      */
@@ -322,23 +323,15 @@ void cDuct::process_mesh_info() {
 
 void cDuct::setup_dynamic_flow() {
   // parameter determines whether we use dynamic flow input
-  dynamic_flow = false;
+  dynamic_flow_flag = false;
   if (p->HasSection("dynamic_flow")) {
     if (p->HasValue("dynamic_flow", "flow_file")) {
-      dynamic_flow = true;
-      std::string flow_file = p->Get("dynamic_flow", "flow_file", "");
+      dynamic_flow_flag = true;
 
       // load flow tables from HDF5 file
-      h5pp::File ff(flow_file, h5pp::FilePermission::READONLY);
-      dynamic_flow_t = ff.readDataset<Eigen::VectorXd>("/t");
-      dynamic_flow_Cl = ff.readDataset<Eigen::VectorXd>("/Cl");
-      dynamic_flow_K = ff.readDataset<Eigen::VectorXd>("/K");
-      dynamic_flow_Na = ff.readDataset<Eigen::VectorXd>("/Na");
-      dynamic_flow_Q = ff.readDataset<Eigen::VectorXd>("/Q");
-      dynamic_flow_tstart = dynamic_flow_t(0);
-      dynamic_flow_tend = dynamic_flow_t(Eigen::last);
-
-      out << "<Duct> using dynamic flow input from " << dynamic_flow_tstart << " to " << dynamic_flow_tend << " s" << std::endl;
+      std::string flow_file = p->Get("dynamic_flow", "flow_file", "");
+      dynamic_flow.load(flow_file);
+      out << "<Duct> using dynamic flow input from " << dynamic_flow.get_tstart() << " to " << dynamic_flow.get_tend() << " s" << std::endl;
     }
   }
 }
@@ -574,6 +567,26 @@ void cDuct::f_ODE(const double t, const Array1Nd &x_in, Array1Nd &dxdt) {
     dwAdt += cell_striated->dwAdt;
     dxldt += cell_striated->dxldt;
   }
+
+  // primary saliva volume flow rate
+  double Na_P, K_P, Cl_P, pv;
+  if (dynamic_flow_flag && (t < dynamic_flow.get_tend())) {  // primary saliva volume flow rate dependent on time
+    // interpolating values
+    auto interp_vals = dynamic_flow.get_interp_vals(t);
+    Na_P = dynamic_flow.get_Na(interp_vals);
+    K_P = dynamic_flow.get_K(interp_vals);
+    Cl_P = dynamic_flow.get_Cl(interp_vals);
+    pv = dynamic_flow.get_Q(interp_vals);
+  }
+  else {  // otherwise, constant
+    Na_P = P.ConP(Na);
+    K_P = P.ConP(K);
+    Cl_P = P.ConP(Cl);
+    pv = P.PSflow;
+  }
+  double HCO_P = P.ConP(HCO);
+  double H_P = P.ConP(H);
+  double CO_P = P.ConP(CO);
 
   // % compute the fluid flow rate in the lumen
   // v = ones(1,n_l) * P.PSflow; % um^3/s volume flow rate of fluid out of each lumen segment

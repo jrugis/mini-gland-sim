@@ -15,6 +15,7 @@
 #include "inih/cpp/INIReader.h"
 #include "cCVode.hpp"
 #include "global_defs.hpp"
+#include "cDynamicFlow.hpp"
 
 // number of lumenal variables
 #define LUMENALCOUNT 6
@@ -157,16 +158,11 @@ private:
   duct::parameters_t P;
   duct::ArrayNFC x_l, dxldt;  // solution vector and derivative
   Array1Nd x, dxdt;
-  Array1Nd dwAdt, v, v_up;
+  Array1Nd dwAdt, v, v_up, v_secreted;
   duct::ArrayNFC x_up;
   cCVode *solver;
-  bool dynamic_flow;  // dynamic flow input vs static
-  Eigen::VectorXd dynamic_flow_t;
-  Eigen::VectorXd dynamic_flow_Cl;
-  Eigen::VectorXd dynamic_flow_K;
-  Eigen::VectorXd dynamic_flow_Na;
-  Eigen::VectorXd dynamic_flow_Q;
-  double dynamic_flow_tstart, dynamic_flow_tend;
+  bool dynamic_flow_flag;  // dynamic flow input vs static
+  cDynamicFlow dynamic_flow;  // object for interpolating dynamic flow inputs
   int stepnum, outputnum, Tstride;
   std::string resultsh5_dataset, resultsh5_filename;
   void get_parameters();
@@ -178,6 +174,7 @@ private:
   void setup_arrays();
   double accum_fluid(const int duct_idx);
   void setup_dynamic_flow();
+  std::tuple<int, double> dynamic_flow_interp_vals(const double t);
 };
 
 #endif /* CDUCT_H_ */

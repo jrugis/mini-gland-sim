@@ -47,7 +47,7 @@ CPP_LIBS = -lstdc++ -lstdc++fs -lm -lsundials_cvode -lspdlog -lfmt -lhdf5_hl -lh
 
 EXE = ../run/mini-gland-sim
 #OBJS = CVode.o
-OBJS = main.o utils.o cMiniGland.o cAcinus.o cDuct.o cLTree.o cACell.o  cSICell.o cSIMesh.o ini.o INIReader.o cCVode.o
+OBJS = main.o utils.o cMiniGland.o cAcinus.o cDuct.o cLTree.o cACell.o  cSICell.o cSIMesh.o ini.o INIReader.o cCVode.o cDynamicFlow.o
 SRC = ./src
 
 all: $(EXE)
@@ -86,6 +86,9 @@ cSIMesh.o: $(SRC)/cSIMesh.cpp $(SRC)/cSIMesh.hpp $(SRC)/utils.hpp $(SRC)/global_
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 cCVode.o: $(SRC)/cCVode.cpp $(SRC)/cCVode.hpp
+	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
+
+cDynamicFlow.o: $(SRC)/cDynamicFlow.cpp $(SRC)/cDynamicFlow.hpp
 	$(CPP) $(CPP_FLAGS) $(CPP_INCLUDES) -o $@ -c $<
 
 #LSODA.o: $(SRC)/libsoda/LSODA.cpp $(SRC)/libsoda/LSODA.h $(SRC)/libsoda/helper.h
