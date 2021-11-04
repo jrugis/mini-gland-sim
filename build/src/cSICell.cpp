@@ -55,6 +55,13 @@ cSICell::~cSICell() {
   out.close();
 }
 
+Array1Nd cSICell::get_disc_mask() const {
+  Array1Nd mask = Eigen::VectorXi::Zero(parent->n_disc);
+  mask(loc_disc) = 1;
+
+  return mask;
+}
+
 void cSICell::setup_arrays() {
   // setting up arrays once at the beginning for performance
   int n_loc_disc = loc_disc.size();

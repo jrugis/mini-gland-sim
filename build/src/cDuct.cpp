@@ -78,8 +78,18 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   // sorting filepaths so cells are ordered by number in the vector
   std::sort(filenames.begin(), filenames.end());
   for (const auto &fpath : filenames) {
-    if(fpath.find("Cell_I") != std::string::npos) icells.push_back(new cSICell(this, fpath, INTERCALATED));
-    if(fpath.find("Cell_S") != std::string::npos) scells.push_back(new cSICell(this, fpath, STRIATED));
+    cSICell* new_cell;
+    if(fpath.find("Cell_I") != std::string::npos) new_cell = new cSICell(this, fpath, INTERCALATED);
+    if(fpath.find("Cell_S") != std::string::npos) new_cell = new cSICell(this, fpath, STRIATED);
+
+    // discard cells with no apical triangles
+    if (new_cell->get_napical() > 0) {
+      if(fpath.find("Cell_I") != std::string::npos) icells.push_back(new_cell);
+      if(fpath.find("Cell_S") != std::string::npos) scells.push_back(new_cell);
+    }
+    else {
+      out << "<Duct> skipping cell " << new_cell->get_cell_number() << " due to no apical triangles!" << std::endl;
+    }
   }
   
   //out << "<Duct> Duct segment count: " << nlsegs << std::endl; 
