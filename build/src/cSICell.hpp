@@ -55,7 +55,7 @@ public:
   const double get_mean_dist() { return mean_dist; }
   const int get_cell_number() { return cell_number; }
   const int get_napical() { return napical; }
-  Array1Nd get_disc_mask() const;
+  Array1Ni get_disc_mask() const;
 
 protected:
 	  

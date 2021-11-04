@@ -55,8 +55,8 @@ cSICell::~cSICell() {
   out.close();
 }
 
-Array1Nd cSICell::get_disc_mask() const {
-  Array1Nd mask = Eigen::VectorXi::Zero(parent->n_disc);
+Array1Ni cSICell::get_disc_mask() const {
+  Array1Ni mask = Eigen::VectorXi::Zero(parent->n_disc);
   mask(loc_disc) = 1;
 
   return mask;

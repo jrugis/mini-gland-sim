@@ -158,21 +158,35 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   double outputdt = delT * Tstride;
   resultsh5.writeAttribute(outputdt, "output time interval", "/");
 
+  // store disc position along duct for postprocessing
+  Array1Nd IntPos(n_disc);
+  IntPos.setZero();
+  IntPos(0) = disc_length(0);
+  for (int i = 1; i < n_disc; i++) {
+    int out = disc_out_Vec(i);
+    IntPos(i) = disc_length(i) + IntPos(out);
+  }
+  double max_length = IntPos.maxCoeff();
+  IntPos = max_length - IntPos;
+  Eigen::VectorXf IntPosf = IntPos.cast<float>();
+  resultsh5.writeDataset(IntPosf, id + "/IntPos");
+
   // store cell mean distance along duct for postprocessing
   Array1Nd CellPos(nscells);
   for (int i = 0; i < nscells; i++) {
-    CellPos(i) = static_cast<float>(scells[i]->get_mean_dist());
+    CellPos(i) = scells[i]->get_mean_dist();
   }
-  CellPos = disc_length.sum() - CellPos;
+  CellPos = max_length - CellPos;
   Eigen::VectorXf CellPosf = CellPos.cast<float>();
   resultsh5.writeDataset(CellPosf, id + "/CellPos");
 
-  // store disc position along duct for postprocessing
-  Array1Nd IntPos(n_disc);
-  std::partial_sum(disc_length.begin(), disc_length.end(), IntPos.begin());
-  IntPos = disc_length.sum() - IntPos;
-  Eigen::VectorXf IntPosf = IntPos.cast<float>();
-  resultsh5.writeDataset(IntPosf, id + "/IntPos");
+  // store disc mask for each cell (which discs the cell interacts with)
+  Eigen::Array<int, Eigen::Dynamic, Eigen::Dynamic> cell_disc_mask;
+  cell_disc_mask.resize(scells.size(), n_disc);
+  for (std::vector<cSICell*>::size_type i = 0; i < scells.size(); i++) {
+    cell_disc_mask.row(i) = scells[i]->get_disc_mask();
+  }
+  resultsh5.writeDataset(cell_disc_mask, id + "/CellDiscMask");
 
   // store t=0
   save_results();
