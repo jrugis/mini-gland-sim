@@ -35,9 +35,9 @@ Load the required software environment modules.
 
 ```sh
 ml purge
-ml SUNDIALS/5.7.0-gimkl-2020a
+ml SUNDIALS/5.8.0-gimkl-2020a
 ml h5pp/1.9.0-gimpi-2020a
-ml Python/3.8.2-gimkl-2020a
+ml Python/3.9.5-gimkl-2020a
 ```
 
 ## Build the code

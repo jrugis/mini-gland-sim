@@ -12,7 +12,7 @@ export SLURM_EXPORT_ENV=ALL    #   a clean environment in our Slurm job
 # setup environment modules
 ml SUNDIALS/5.7.0-gimkl-2020a
 ml h5pp/1.9.0-gimpi-2020a
-ml Python/3.8.2-gimkl-2020a
+ml Python/3.9.5-gimkl-2020a
 
 # OpenMP configuration
 export OMP_PROC_BIND=true
