@@ -18,6 +18,7 @@
 
 #include <nvector/nvector_serial.h>    /* access to serial N_Vector            */
 #include <sundials/sundials_types.h>   /* defs. of realtype, sunindextype      */
+#include "h5pp/details/h5ppEnums.h"
 #include "h5pp/h5pp.h"
 
 #include "global_defs.hpp"
@@ -516,6 +517,13 @@ void cDuct::step(double t, double dt)
 #endif
 
     f_ODE(0, testx, testxdot);
+
+    {
+      h5pp::File dumpf("cxxxdump.h5", h5pp::FilePermission::READWRITE);
+      dumpf.writeDataset(testx, "/x");
+      dumpf.writeDataset(testxdot, "/xdot");
+    }
+
     std::ofstream xfile("xdump.txt");
     xfile << std::fixed << std::setprecision(15);
     xfile << testx.transpose();
@@ -601,8 +609,18 @@ void cDuct::f_ODE(const double t, const Array1Nd &x_in, Array1Nd &dxdt) {
     x_P(Na) = dynamic_flow.get_Na(interp_vals);
     x_P(K) = dynamic_flow.get_K(interp_vals);
     x_P(Cl) = dynamic_flow.get_Cl(interp_vals);
-    pv = dynamic_flow.get_Q(interp_vals);
+    pv = dynamic_flow.get_Q(interp_vals) / 6.0;
   }
+#ifdef DEBUGFODE
+  out << "t = " << t << std::endl;
+  out << "Na_P = " << x_P(Na) << std::endl;
+  out << "K_P = " << x_P(K) << std::endl;
+  out << "Cl_P = " << x_P(Cl) << std::endl;
+  out << "HCO_P = " << x_P(HCO) << std::endl;
+  out << "H_P = " << x_P(H) << std::endl;
+  out << "CO_P = " << x_P(CO) << std::endl;
+  out << "pv = " << pv << std::endl;
+#endif
 
   // compute the fluid flow rate in the lumen
   v_secreted.setZero();
