@@ -103,15 +103,15 @@ double cDynamicFlow::get_K(const std::tuple<int, double>& interp_vals) const {
   double val;
   if (i + 1 >= dim) {  // check if we are right at the end of the interval
     // return last value
-    val = Cl_table(Eigen::last);
+    val = K_table(Eigen::last);
 #ifdef DEBUGDYNAMICFLOW
     std::cout << "Calc val = " << val << std::endl;
 #endif
   }
   else {
     // interpolate
-    double a = Cl_table(i);
-    double b = Cl_table(i + 1); // TODO: check range
+    double a = K_table(i);
+    double b = K_table(i + 1); // TODO: check range
 //    double val = std::lerp(a, b, t);  // requires C++20
     val = a + t * (b - a);
 #ifdef DEBUGDYNAMICFLOW
@@ -131,15 +131,15 @@ double cDynamicFlow::get_Na(const std::tuple<int, double>& interp_vals) const {
   double val;
   if (i + 1 >= dim) {  // check if we are right at the end of the interval
     // return last value
-    val = Cl_table(Eigen::last);
+    val = Na_table(Eigen::last);
 #ifdef DEBUGDYNAMICFLOW
     std::cout << "Calc val = " << val << std::endl;
 #endif
   }
   else {
     // interpolate
-    double a = Cl_table(i);
-    double b = Cl_table(i + 1); // TODO: check range
+    double a = Na_table(i);
+    double b = Na_table(i + 1); // TODO: check range
 //    double val = std::lerp(a, b, t);  // requires C++20
     val = a + t * (b - a);
 #ifdef DEBUGDYNAMICFLOW
@@ -159,15 +159,15 @@ double cDynamicFlow::get_Q(const std::tuple<int, double>& interp_vals) const {
   double val;
   if (i + 1 >= dim) {  // check if we are right at the end of the interval
     // return last value
-    val = Cl_table(Eigen::last);
+    val = Q_table(Eigen::last);
 #ifdef DEBUGDYNAMICFLOW
     std::cout << "Calc val = " << val << std::endl;
 #endif
   }
   else {
     // interpolate
-    double a = Cl_table(i);
-    double b = Cl_table(i + 1); // TODO: check range
+    double a = Q_table(i);
+    double b = Q_table(i + 1); // TODO: check range
 //    double val = std::lerp(a, b, t);  // requires C++20
     val = a + t * (b - a);
 #ifdef DEBUGDYNAMICFLOW
