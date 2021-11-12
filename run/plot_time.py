@@ -80,7 +80,7 @@ def main(args):
     fig, plots = plt.subplots(nrow, ncol, squeeze=False)
     plt.subplots_adjust(wspace=0.5)
     fig.set_size_inches(ncol * 7.6, nrow * 5.0)
-    fig.suptitle(f"Cell {cell_no} ({os.getcwd()})")
+    fig.suptitle(f"Cell {args.cell} ({os.getcwd()})")
 
     plots[0, 0].plot(tbeg, yy_c[:, 0], label="V_A")
     plots[0, 0].plot(tbeg, yy_c[:, 1], label="V_B")
