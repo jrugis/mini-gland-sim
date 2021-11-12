@@ -24,7 +24,7 @@ echo "Num threads: ${OMP_NUM_THREADS}"
 ./mini-gland-sim
 
 # plot some results
-python plot_dev.py
+python plot_state.py
 python plot_time.py -c 20
 python plot_electroneutrality.py
 python plot_cell_variable_time.py
