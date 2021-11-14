@@ -122,7 +122,8 @@ cDuct::cDuct(cMiniGland* _parent) : parent(_parent), stepnum(0), outputnum(0)
   // setting up the solver
   double abstol = utils::get_parameter_real(p, "odeSolver", "odeSolverAbsTol", out);
   double reltol = utils::get_parameter_real(p, "odeSolver", "odeSolverRelTol", out);
-  solver = new cCVode(out, abstol, reltol);
+  int mxsteps = utils::get_parameter_integer(p, "odeSolver", "odeSolverMaxSteps", out);
+  solver = new cCVode(out, abstol, reltol, mxsteps);
   solver->init(ode_func, x, static_cast<void*>(this));
 
   // simulation time parameters

@@ -57,8 +57,8 @@
  *-------------------------------
  */
 
-cCVode::cCVode(std::ofstream& out_, realtype abstol_, realtype reltol_)
-  : out(out_), initialised(false), nvars(0), abstol(abstol_), reltol(reltol_)
+cCVode::cCVode(std::ofstream& out_, realtype abstol_, realtype reltol_, int maxsteps_)
+  : out(out_), initialised(false), nvars(0), abstol(abstol_), reltol(reltol_), maxsteps(maxsteps_)
 {
   out << std::scientific;
   out << "<CVode> creating CVode solver" << std::endl;
@@ -116,6 +116,11 @@ void cCVode::init(CVRhsFn rhs_func, Array1Nd& yini, void* user_data)
    * and scalar absolute tolerances */
   retval = CVodeSStolerances(cvode_mem, reltol, abstol);
   check_retval(&retval, "CVodeSStolerances", 1);
+
+  /* Call CVodeSetMaxNumSteps to specify the maximum number of steps
+   * while trying to reach the next output time */
+  retval = CVodeSetMaxNumSteps(cvode_mem, maxsteps);
+  check_retval(&retval, "CVodeSetMaxNumSteps", 1);
 
   /* Call CVodeSetUserData */
   retval = CVodeSetUserData(cvode_mem, user_data);

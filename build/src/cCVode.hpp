@@ -14,7 +14,7 @@
 
 class cCVode {
   public:
-  cCVode(std::ofstream& out_, realtype abstol_, realtype reltol_);
+  cCVode(std::ofstream& out_, realtype abstol_, realtype reltol_, int maxsteps_);
   ~cCVode();
   void init(CVRhsFn rhs_func, Array1Nd& yini, void* user_data);
   void run(realtype t, realtype tend, Array1Nd& yout);
@@ -30,6 +30,7 @@ class cCVode {
   SUNLinearSolver LS;
   void* cvode_mem;
   realtype abstol, reltol;
+  int maxsteps;
 
   void check_retval(void* returnvalue, std::string funcname, int opt);
 };
